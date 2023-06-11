@@ -26,6 +26,14 @@ export const ChatContainer: FC = () => {
   useEffect(() => {
     socketRef.current = new WebSocket('ws://localhost:8080/ws');
 
+    socketRef.current.onopen = (event) => {
+      console.log('WebSocket successfully connected:', event);
+    };
+
+    socketRef.current.onerror = (error) => {
+      console.error('WebSocket Error:', error);
+    };
+
     socketRef.current.onmessage = (event) => {
       const message = JSON.parse(event.data);
       addMessage(message);
