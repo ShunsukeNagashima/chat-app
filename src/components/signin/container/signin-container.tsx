@@ -8,6 +8,7 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink,
 } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 
 import { SigninPresenter } from '../presenter';
@@ -19,6 +20,7 @@ const auth = getAuth(firebaseApp);
 const emailSchema = z.string().email();
 
 export const SigninContainer = () => {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const { setUser } = useAuthStore();
@@ -28,10 +30,11 @@ export const SigninContainer = () => {
     try {
       const result = await signInWithPopup(auth, provider);
       setUser(result.user);
+      router.push('/');
     } catch (err) {
       console.error('Signin failed', err);
     }
-  }, [setUser]);
+  }, [setUser, router]);
 
   const handleEmailLinkLogin = useCallback(async (email: string) => {
     const actionCodeSettings = {
@@ -76,12 +79,13 @@ export const SigninContainer = () => {
         .then((result) => {
           window.localStorage.removeItem('emailForSignIn');
           setUser(result.user);
+          router.push('/');
         })
         .catch((err) => {
           console.error('Failed to sign in', err);
         });
     }
-  }, [setUser]);
+  }, [setUser, router]);
 
   return (
     <SigninPresenter

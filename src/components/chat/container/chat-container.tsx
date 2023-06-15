@@ -2,12 +2,14 @@ import { FC, useState, useEffect, useCallback, useRef } from 'react';
 
 import { ChatPresenter } from '@/components/chat/presenter/chat-presenter';
 import { Message } from '@/domain/models/message';
+import { useAuth } from '@/hooks/useAuth';
 import { useChatStore } from '@/store/chat-store';
 
 export const ChatContainer: FC = () => {
   const { addMessage, username, messages } = useChatStore();
   const [messageContent, setMessageContent] = useState('');
   const socketRef = useRef<WebSocket>();
+  const { user } = useAuth();
 
   const sendMessage = useCallback(
     (event: React.FormEvent<HTMLFormElement>) => {
@@ -50,6 +52,7 @@ export const ChatContainer: FC = () => {
       handleChange={handleChange}
       messages={messages}
       messageContent={messageContent}
+      user={user}
     />
   );
 };
