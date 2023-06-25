@@ -20,7 +20,7 @@ type ChatPresenterProps = {
   user: User | null;
   isOpen: boolean;
   chatRooms: Room[];
-  selectedChatRoomId: string;
+  selectedRoomId: string;
 };
 
 export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
@@ -35,7 +35,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
     user,
     isOpen,
     chatRooms,
-    selectedChatRoomId,
+    selectedRoomId,
   } = props;
 
   if (!user) {
@@ -46,7 +46,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
     <div className='flex h-screen bg-gray-800'>
       <Sidebar
         isOpen={isOpen}
-        selectedChatRoomId={selectedChatRoomId}
+        selectedRoomId={selectedRoomId}
         handleLogout={handleLogout}
         toggleDropdown={toggleDropdown}
         selectChatRoom={selectChatRoom}

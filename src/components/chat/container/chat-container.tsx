@@ -27,7 +27,7 @@ export const ChatContainer: FC = () => {
       user={user}
       isOpen={isOpenDropdown}
       chatRooms={rooms}
-      selectedChatRoomId={selectedRoomId}
+      selectedRoomId={selectedRoomId}
     />
   );
 };

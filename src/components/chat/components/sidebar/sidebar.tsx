@@ -7,15 +7,14 @@ import { Room } from '@/infra/room/entity/room';
 type SidebarProps = {
   isOpen: boolean;
   chatRooms: Room[];
-  selectedChatRoomId: string;
+  selectedRoomId: string;
   handleLogout: () => Promise<void>;
   toggleDropdown: () => void;
   selectChatRoom: (id: string) => void;
 };
 
 export const Sidebar: FC<SidebarProps> = (props) => {
-  const { isOpen, chatRooms, selectedChatRoomId, handleLogout, toggleDropdown, selectChatRoom } =
-    props;
+  const { isOpen, chatRooms, selectedRoomId, handleLogout, toggleDropdown, selectChatRoom } = props;
   return (
     <aside className='w-64 text-white p-4 border-r border-gray-700'>
       <div className='flex items-center justify-between mb-8'>
@@ -39,7 +38,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
             return (
               <button
                 className={`py-2 hover:opacity-80 ${
-                  room.roomId === selectedChatRoomId && 'font-bold text-white'
+                  room.roomId === selectedRoomId && 'font-bold text-white'
                 }`}
                 onClick={() => selectChatRoom(room.roomId)}
                 key={room.roomId}
