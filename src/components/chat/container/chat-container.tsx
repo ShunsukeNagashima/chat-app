@@ -55,7 +55,9 @@ export const ChatContainer: FC = () => {
 
   useEffect(() => {
     if (!selectedChatRoomId) return;
-    socketRef.current = new WebSocket(`ws://localhost:8080/ws/${selectedChatRoomId}`);
+    socketRef.current = new WebSocket(
+      `ws://${process.env.NEXT_PUBLIC_API_HOST}/ws/${selectedChatRoomId}`,
+    );
 
     socketRef.current.onopen = (event) => {
       console.log('WebSocket successfully connected:', event);
