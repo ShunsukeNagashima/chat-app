@@ -26,8 +26,6 @@ export const SigninContainer = () => {
   const [error, setError] = useState('');
   const { setUser } = useAuthStore();
 
-  console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
-
   const registerUser = useCallback(
     async (userId: string, name: string, email: string, idToken: string) => {
       const req = {
@@ -39,7 +37,6 @@ export const SigninContainer = () => {
 
       try {
         const result = await userClient.create(req);
-        console.log(result);
       } catch (err) {
         console.error('Failed to register user', err);
       }
@@ -102,16 +99,12 @@ export const SigninContainer = () => {
     (async () => {
       if (isSignInWithEmailLink(auth, window.location.href)) {
         let email = window.localStorage.getItem('emailForSignIn');
-        console.log(email);
         if (!email) {
           email = window.prompt('Please provide your email for confirmation');
         }
 
         try {
           const result = await signInWithEmailLink(auth, email as string, window.location.href);
-          console.log(result);
-
-          console.log('userId', result.user.uid);
           const idToken = await result.user.getIdToken();
 
           await registerUser(
