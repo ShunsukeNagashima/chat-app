@@ -2,14 +2,20 @@ import { FC } from 'react';
 
 import { RiArrowDropDownLine } from 'react-icons/ri';
 
+import { Room } from '@/infra/room/entity/room';
+
 type SidebarProps = {
   isOpen: boolean;
+  chatRooms: Room[];
+  selectedChatRoomId: string;
   handleLogout: () => Promise<void>;
   toggleDropdown: () => void;
+  selectChatRoom: (id: string) => void;
 };
 
 export const Sidebar: FC<SidebarProps> = (props) => {
-  const { isOpen, handleLogout, toggleDropdown } = props;
+  const { isOpen, chatRooms, selectedChatRoomId, handleLogout, toggleDropdown, selectChatRoom } =
+    props;
   return (
     <aside className='w-64 text-white p-4 border-r border-gray-700'>
       <div className='flex items-center justify-between mb-8'>
@@ -26,6 +32,22 @@ export const Sidebar: FC<SidebarProps> = (props) => {
             </ul>
           )}
         </button>
+      </div>
+      <div className='text-gray-400 px-2'>
+        {chatRooms.length > 0 &&
+          chatRooms.map((room) => {
+            return (
+              <button
+                className={`py-2 hover:opacity-80 ${
+                  room.roomId === selectedChatRoomId && 'font-bold text-white'
+                }`}
+                onClick={() => selectChatRoom(room.roomId)}
+                key={room.roomId}
+              >
+                {room.name}
+              </button>
+            );
+          })}
       </div>
     </aside>
   );

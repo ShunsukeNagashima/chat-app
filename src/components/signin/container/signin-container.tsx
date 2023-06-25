@@ -13,6 +13,7 @@ import { z } from 'zod';
 
 import { SigninPresenter } from '../presenter';
 
+import { userClient } from '@/infra/user/user-client';
 import { firebaseApp } from '@/lib/firebase-client';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -25,20 +26,49 @@ export const SigninContainer = () => {
   const [error, setError] = useState('');
   const { setUser } = useAuthStore();
 
+  console.log(process.env.NEXT_PUBLIC_API_BASE_URL);
+
+  const registerUser = useCallback(
+    async (userId: string, name: string, email: string, idToken: string) => {
+      const req = {
+        userId,
+        name,
+        email,
+        idToken,
+      };
+
+      try {
+        const result = await userClient.create(req);
+        console.log(result);
+      } catch (err) {
+        console.error('Failed to register user', err);
+      }
+    },
+    [],
+  );
+
   const handleGoogleLogin = useCallback(async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
+      console.log(result);
+      const idToken = await result.user.getIdToken();
+      await registerUser(
+        result.user.uid,
+        result.user.displayName as string,
+        result.user.email as string,
+        idToken,
+      );
       setUser(result.user);
       router.push('/');
     } catch (err) {
       console.error('Signin failed', err);
     }
-  }, [setUser, router]);
+  }, [setUser, router, registerUser]);
 
   const handleEmailLinkLogin = useCallback(async (email: string) => {
     const actionCodeSettings = {
-      url: `http://localhost:3000/?email=${email}`,
+      url: `http://localhost:3000/signin?email=${email}`,
       handleCodeInApp: true,
     };
     const auth = getAuth(firebaseApp);
@@ -69,23 +99,36 @@ export const SigninContainer = () => {
   }, []);
 
   useEffect(() => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      let email = window.localStorage.getItem('emailForSignIn');
-      if (!email) {
-        email = window.prompt('Please provide your email for confirmation');
-      }
+    (async () => {
+      if (isSignInWithEmailLink(auth, window.location.href)) {
+        let email = window.localStorage.getItem('emailForSignIn');
+        console.log(email);
+        if (!email) {
+          email = window.prompt('Please provide your email for confirmation');
+        }
 
-      signInWithEmailLink(auth, email as string, window.location.href)
-        .then((result) => {
+        try {
+          const result = await signInWithEmailLink(auth, email as string, window.location.href);
+          console.log(result);
+
+          console.log('userId', result.user.uid);
+          const idToken = await result.user.getIdToken();
+
+          await registerUser(
+            result.user.uid,
+            result.user.email?.split('@')[0] as string,
+            result.user.email as string,
+            idToken,
+          );
           window.localStorage.removeItem('emailForSignIn');
           setUser(result.user);
           router.push('/');
-        })
-        .catch((err) => {
+        } catch (err) {
           console.error('Failed to sign in', err);
-        });
-    }
-  }, [setUser, router]);
+        }
+      }
+    })();
+  }, [setUser, router, registerUser]);
 
   return (
     <SigninPresenter

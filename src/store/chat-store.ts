@@ -7,6 +7,7 @@ export type ChatStore = {
   username: string;
   addMessage: (message: Message) => void;
   setUsername: (username: string) => void;
+  clearMessages: () => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -14,4 +15,5 @@ export const useChatStore = create<ChatStore>((set) => ({
   username: '',
   addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
   setUsername: (username) => set({ username }),
+  clearMessages: () => set({ messages: [] }),
 }));
