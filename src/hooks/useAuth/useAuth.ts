@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 
 import { firebaseApp } from '@/lib/firebase-client';
@@ -11,6 +11,14 @@ const auth = getAuth(firebaseApp);
 export const useAuth = () => {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
+
+  const logout = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Failed to logout', err);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (authUser) => {
@@ -24,5 +32,5 @@ export const useAuth = () => {
     return () => unsubscribe();
   }, [router, setUser]);
 
-  return { user };
+  return { user, logout };
 };
