@@ -53,11 +53,12 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
         chatRooms={chatRooms}
       />
       <main className='flex flex-1 flex-col h-screen justify-between'>
-        <MessageList messages={messages} />
+        <MessageList messages={messages} selectedRoomId={selectedRoomId} />
         <MessageForm
           sendMessage={sendMessage}
           handleChange={handleChange}
           messageContent={messageContent}
+          selectedRoomId={selectedRoomId}
           className='mt-auto'
         />
       </main>
