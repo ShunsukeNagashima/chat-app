@@ -27,7 +27,7 @@ export const MessageForm: FC<MessageFormProps> = (props) => {
         />
         <button
           type='submit'
-          className='px-3 py-2 text-white bg-blue-500 rounded hover:bg-blue-400 disabled:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='px-3 py-2 text-white bg-indigo-600 rounded hover:bg-blue-400 disabled:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
           disabled={!selectedRoomId || !messageContent}
         >
           Send

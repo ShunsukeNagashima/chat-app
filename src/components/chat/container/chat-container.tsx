@@ -12,7 +12,16 @@ export const ChatContainer: FC = () => {
   const { messages, rooms, selectedRoomId } = useChatStore();
   const [isOpenDropdown, { toggle: toggleDropdown }] = useBoolean(false);
   const { user, logout } = useAuth();
-  const { selectChatRoom } = useChatRooms();
+  const {
+    isOpenCreateRoomModal,
+    formState,
+    createRoom,
+    selectRoom,
+    openCreateRoomModal,
+    closeCreateRoomModal,
+    register,
+    handleSubmit,
+  } = useChatRooms();
   const { sendMessage, handleChange, messageContent } = useChatMessages();
 
   return (
@@ -21,13 +30,20 @@ export const ChatContainer: FC = () => {
       handleChange={handleChange}
       handleLogout={logout}
       toggleDropdown={toggleDropdown}
-      selectChatRoom={selectChatRoom}
+      selectRoom={selectRoom}
+      openCreateRoomModal={openCreateRoomModal}
+      closeCreateRoomModal={closeCreateRoomModal}
+      register={register}
+      handleSubmit={handleSubmit}
+      createRoom={createRoom}
       messages={messages}
       messageContent={messageContent}
       user={user}
       isOpen={isOpenDropdown}
       chatRooms={rooms}
       selectedRoomId={selectedRoomId}
+      isOpenCreateRoomModal={isOpenCreateRoomModal}
+      formState={formState}
     />
   );
 };

@@ -14,6 +14,7 @@ export type RoomTypeEnum = keyof typeof roomType;
 export type CreateRoomRequest = {
   name: string;
   roomType: RoomTypeEnum;
+  ownerId: string;
 };
 
 export type FetchAllByUserIDResponse = {
