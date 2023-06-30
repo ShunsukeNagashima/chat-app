@@ -11,12 +11,16 @@ export const roomType = {
 
 export type RoomTypeEnum = keyof typeof roomType;
 
+export type FetchAllByUserIDResponse = {
+  result: Room[];
+};
+
 export type CreateRoomRequest = {
   name: string;
   roomType: RoomTypeEnum;
   ownerId: string;
 };
 
-export type FetchAllByUserIDResponse = {
-  result: Room[];
+export type CreateRoomResponse = {
+  result: Room;
 };

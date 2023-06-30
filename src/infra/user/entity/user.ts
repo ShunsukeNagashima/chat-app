@@ -1,3 +1,5 @@
+import { Room } from '@/infra/room/entity/room';
+
 export type User = {
   userId: string;
   username: string;
@@ -9,4 +11,16 @@ export type CreateUserRequest = {
   name: string;
   email: string;
   idToken: string;
+};
+
+export type CreateUserResponse = {
+  result: User;
+};
+
+export type FetchByIdResponse = {
+  result: User;
+};
+
+export type FetchAllRoomsByUserIdReponse = {
+  result: Room[];
 };
