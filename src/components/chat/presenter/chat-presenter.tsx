@@ -24,7 +24,7 @@ type ChatPresenterProps = {
   selectedRoomId: string;
   formState: FormState<ChatRoomFormInput>;
   currentStep: RoomCreationStepsEnum;
-  roomCreationError: string;
+  isRoomCreationFailed: boolean;
   loading: boolean;
   sendMessage: (event: React.FormEvent<HTMLFormElement>) => void;
   handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -48,7 +48,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
     selectedRoomId,
     formState,
     currentStep,
-    roomCreationError,
+    isRoomCreationFailed,
     loading,
     sendMessage,
     handleChange,
@@ -104,7 +104,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
           handleNextStep={handleNextStep}
           handleClose={handleCloseModal}
           currentStep={currentStep}
-          error={roomCreationError}
+          hasError={isRoomCreationFailed}
         />
       </StepContent>
     </div>

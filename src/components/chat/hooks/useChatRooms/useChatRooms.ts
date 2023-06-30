@@ -9,6 +9,7 @@ import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '../../enum';
 import { ChatRoomFormInput } from '@/components/chat/type';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
+import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { useFetch } from '@/hooks/useFetch';
 import { roomClient } from '@/infra/room/room-client';
 import { useChatStore } from '@/store/chat-store';
@@ -26,8 +27,8 @@ const schema = z.object({
 export const useChatRooms = () => {
   const [currentStep, setCurrentStep] = useState<RoomCreationStepsEnum>(ROOM_CREATION_STEPS.CLOSED);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
-  const [errorMsg, setErrorMsg] = useState('');
   const { user } = useAuth();
+  const { hasError, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
     resolver: zodResolver(schema),
@@ -64,19 +65,14 @@ export const useChatRooms = () => {
       try {
         await roomClient.create({ ...data, ownerId: user.uid });
         handleNextStep();
-        setErrorMsg('');
+        resetError();
       } catch (err) {
-        console.error(err);
-        if (err instanceof Error) {
-          setErrorMsg(err.message);
-        } else {
-          setErrorMsg('Unexpected error occured');
-        }
+        handleError(err);
       } finally {
         finishLoading();
       }
     },
-    [user, handleNextStep, startLoading, finishLoading],
+    [user, handleNextStep, startLoading, finishLoading, handleError, resetError],
   );
 
   const { data: rooms } = useFetch(() => roomClient.fetchAllByUserID(user?.uid ?? ''), {
@@ -87,7 +83,7 @@ export const useChatRooms = () => {
     rooms: rooms ?? [],
     formState,
     currentStep,
-    roomCreationError: errorMsg,
+    isCreationFailed: hasError,
     loading,
     createRoom,
     selectRoom,

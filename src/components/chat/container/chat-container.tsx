@@ -16,7 +16,7 @@ export const ChatContainer: FC = () => {
     rooms,
     formState,
     currentStep,
-    roomCreationError,
+    isCreationFailed,
     loading,
     createRoom,
     selectRoom,
@@ -38,7 +38,7 @@ export const ChatContainer: FC = () => {
       selectedRoomId={selectedRoomId}
       formState={formState}
       currentStep={currentStep}
-      roomCreationError={roomCreationError}
+      isRoomCreationFailed={isCreationFailed}
       loading={loading}
       sendMessage={sendMessage}
       handleChange={handleChange}

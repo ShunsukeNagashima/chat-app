@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button/button';
 import { Modal } from '@/components/ui/modal';
 
 type ResultModalProps = {
-  error: string;
+  hasError: boolean;
   currentStep: RoomCreationStepsEnum;
   handleNextStep: () => void;
   handleClose: () => void;
@@ -47,7 +47,7 @@ const stepMessages = {
 };
 
 export const ResultModal: FC<ResultModalProps> = (props) => {
-  const { error, currentStep, handleNextStep, handleClose } = props;
+  const { hasError, currentStep, handleNextStep, handleClose } = props;
 
   if (
     currentStep !== ROOM_CREATION_STEPS.CREATE_ROOM_RESULT &&
@@ -57,7 +57,7 @@ export const ResultModal: FC<ResultModalProps> = (props) => {
   }
 
   const stepInfo = stepMessages[currentStep];
-  const resultInfo = error ? stepInfo.failure : stepInfo.success;
+  const resultInfo = hasError ? stepInfo.failure : stepInfo.success;
 
   const modalContent = (
     <div className='flex flex-col items-center justify-center gap-6'>
