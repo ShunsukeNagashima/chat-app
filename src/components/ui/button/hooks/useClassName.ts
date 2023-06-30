@@ -41,6 +41,19 @@ const selectIconSize = (size: ButtonSize): string => {
   }
 };
 
+const selectSpinnerSize = (size: ButtonSize): string => {
+  switch (size) {
+    case 'sm':
+      return 'h-4 w-4';
+    case 'md':
+      return 'h-5 w-5';
+    case 'lg':
+      return 'h-6 w-6';
+    default:
+      return 'h-5 w-5';
+  }
+};
+
 export type ClassNameHoolProps = {
   color: ButtonColor;
   size: ButtonSize;
@@ -48,7 +61,7 @@ export type ClassNameHoolProps = {
   className?: string;
 };
 
-export type ClassNameHoolValue = { button: string; startIcon: string };
+export type ClassNameHoolValue = { button: string; startIcon: string; spinner: string };
 
 export const useClassName = (props: ClassNameHoolProps): ClassNameHoolValue => {
   const { className: clsName, color, size, disabled } = props;
@@ -68,5 +81,10 @@ export const useClassName = (props: ClassNameHoolProps): ClassNameHoolValue => {
     return `${sizeClass}`;
   }, [size]);
 
-  return { button: buttonClass, startIcon: startIconClass };
+  const spinnerClass = useMemo(() => {
+    const sizeClass = selectSpinnerSize(size);
+    return `${sizeClass}`;
+  }, [size]);
+
+  return { button: buttonClass, startIcon: startIconClass, spinner: spinnerClass };
 };

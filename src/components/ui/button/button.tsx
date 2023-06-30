@@ -7,6 +7,7 @@ type ButtonProps = ComponentProps<'button'> & {
   color?: ButtonColor;
   size?: ButtonSize;
   startIcon?: ReactNode;
+  loading?: boolean;
   children: ReactNode;
 };
 
@@ -15,6 +16,7 @@ export const Button: FC<ButtonProps> = (props) => {
     color = 'default',
     size = 'md',
     startIcon,
+    loading = false,
     children,
     disabled = false,
     className: clsName,
@@ -26,12 +28,18 @@ export const Button: FC<ButtonProps> = (props) => {
   return (
     <button
       {...buttonProps}
-      className={`w-full rounded-md border border-transparent shadow-sm font-medium text-white sm:mt-0 sm:w-auto sm:text-sm ${className.button}`}
+      className={`min-w-[120px] w-auto flex justify-center items-center rounded-md border border-transparent shadow-sm font-medium text-white sm:mt-0 sm:w-auto sm:text-sm ${className.button} `}
       disabled={disabled}
       aria-disabled={disabled}
     >
       {startIcon && <span className={className.startIcon}>{startIcon}</span>}
-      {children}
+      {!loading ? (
+        children
+      ) : (
+        <div
+          className={`animate-spin border-4 border-white rounded-full border-t-transparent ${className.spinner}`}
+        />
+      )}
     </button>
   );
 };
