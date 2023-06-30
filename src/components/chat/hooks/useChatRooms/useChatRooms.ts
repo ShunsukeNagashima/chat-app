@@ -1,12 +1,15 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
+import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '../../enum';
+
 import { ChatRoomFormInput } from '@/components/chat/type';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
+import { useFetch } from '@/hooks/useFetch';
 import { roomClient } from '@/infra/room/room-client';
 import { useChatStore } from '@/store/chat-store';
 
@@ -21,14 +24,29 @@ const schema = z.object({
 });
 
 export const useChatRooms = () => {
+  const [currentStep, setCurrentStep] = useState<RoomCreationStepsEnum>(ROOM_CREATION_STEPS.CLOSED);
+  const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const { user } = useAuth();
-  const { clearMessages, setSelectedRoomId, setRooms, selectedRoomId } = useChatStore();
-  const [isOpenCreateRoomModal, { on: openCreateRoomModal, off: closeCreateRoomModal }] =
-    useBoolean(false);
+  const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
     resolver: zodResolver(schema),
     mode: 'onChange',
   });
+
+  const handleNextStep = useCallback(() => {
+    setCurrentStep((prevStep) => {
+      if (prevStep >= ROOM_CREATION_STEPS.ADD_USERS_RESULT) {
+        return ROOM_CREATION_STEPS.CLOSED;
+      } else {
+        return (prevStep + 1) as RoomCreationStepsEnum;
+      }
+    });
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setCurrentStep(ROOM_CREATION_STEPS.CLOSED);
+  }, []);
 
   const selectRoom = useCallback(
     (roomId: string) => {
@@ -41,38 +59,41 @@ export const useChatRooms = () => {
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
     async (data) => {
-      console.log('user', user);
       if (!user) return;
+      startLoading();
       try {
         await roomClient.create({ ...data, ownerId: user.uid });
+        handleNextStep();
+        setErrorMsg('');
       } catch (err) {
         console.error(err);
+        if (err instanceof Error) {
+          setErrorMsg(err.message);
+        } else {
+          setErrorMsg('Unexpected error occured');
+        }
+      } finally {
+        finishLoading();
       }
     },
-    [user],
+    [user, handleNextStep, startLoading, finishLoading],
   );
 
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      try {
-        const data = await roomClient.fetchAllByUserID(user.uid);
-        const rooms = data.result;
-        setRooms(rooms);
-      } catch (err) {
-        console.error(err);
-      }
-    })();
-  }, [user, setRooms]);
+  const { data: rooms } = useFetch(() => roomClient.fetchAllByUserID(user?.uid ?? ''), {
+    enabled: !!user,
+  });
 
   return {
-    isOpenCreateRoomModal,
+    rooms: rooms ?? [],
     formState,
+    currentStep,
+    roomCreationError: errorMsg,
+    loading,
     createRoom,
     selectRoom,
-    openCreateRoomModal,
-    closeCreateRoomModal,
     register,
     handleSubmit,
+    handleNextStep,
+    handleClose,
   };
 };
