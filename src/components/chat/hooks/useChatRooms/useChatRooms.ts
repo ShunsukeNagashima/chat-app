@@ -11,7 +11,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { useFetch } from '@/hooks/useFetch';
+import { Room } from '@/infra/room/entity/room';
 import { roomClient } from '@/infra/room/room-client';
+import { roomUserClient } from '@/infra/room-user/room-user-client';
+import { User } from '@/infra/user/entity/user';
+import { userClient } from '@/infra/user/user-client';
 import { useChatStore } from '@/store/chat-store';
 
 const schema = z.object({
@@ -26,8 +30,11 @@ const schema = z.object({
 
 export const useChatRooms = () => {
   const [currentStep, setCurrentStep] = useState<RoomCreationStepsEnum>(ROOM_CREATION_STEPS.CLOSED);
+  const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
+  const [usersToBeAdded, setUsersToBeAdded] = useState<User[]>([]);
+  const [createdRoom, setCreatedRoom] = useState<Room>();
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
-  const { user } = useAuth();
+  const { user: firebaseUser } = useAuth();
   const { hasError, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
@@ -41,6 +48,16 @@ export const useChatRooms = () => {
         return ROOM_CREATION_STEPS.CLOSED;
       } else {
         return (prevStep + 1) as RoomCreationStepsEnum;
+      }
+    });
+  }, []);
+
+  const handlePrevStep = useCallback(() => {
+    setCurrentStep((prevStep) => {
+      if (prevStep <= ROOM_CREATION_STEPS.CREATE_ROOM) {
+        return ROOM_CREATION_STEPS.CLOSED;
+      } else {
+        return (prevStep - 1) as RoomCreationStepsEnum;
       }
     });
   }, []);
@@ -60,10 +77,11 @@ export const useChatRooms = () => {
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
     async (data) => {
-      if (!user) return;
+      if (!firebaseUser) return;
       startLoading();
       try {
-        await roomClient.create({ ...data, ownerId: user.uid });
+        const room = await roomClient.create({ ...data, ownerId: firebaseUser.uid });
+        setCreatedRoom(room);
         handleNextStep();
         resetError();
       } catch (err) {
@@ -72,24 +90,87 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [user, handleNextStep, startLoading, finishLoading, handleError, resetError],
+    [firebaseUser, handleNextStep, startLoading, finishLoading, handleError, resetError],
   );
 
-  const { data: rooms } = useFetch(() => roomClient.fetchAllByUserID(user?.uid ?? ''), {
-    enabled: !!user,
+  const serachUsers = useCallback(
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const query = event.target.value;
+      const req = {
+        query,
+        from: 0,
+        size: 20,
+      };
+      startLoading();
+      try {
+        const users = await userClient.searchUsers(req);
+        const usersWithoutOwner = users.filter((user) => user.userId !== firebaseUser?.uid);
+        setSearchedUsers(usersWithoutOwner);
+        resetError();
+      } catch (err) {
+        handleError(err);
+      } finally {
+        finishLoading();
+      }
+    },
+    [startLoading, finishLoading, handleError, resetError, firebaseUser],
+  );
+
+  const addUserToList = useCallback(
+    (user: User) => {
+      const updatedUsers = [...usersToBeAdded, user];
+      setUsersToBeAdded(updatedUsers);
+    },
+    [setUsersToBeAdded, usersToBeAdded],
+  );
+
+  const removeUserFromList = useCallback(
+    (userId: string) => {
+      const updatedUserIds = usersToBeAdded.filter((user) => user.userId !== userId);
+      setUsersToBeAdded(updatedUserIds);
+    },
+    [setUsersToBeAdded, usersToBeAdded],
+  );
+
+  const addUsersToRoom = useCallback(async () => {
+    const userIds = usersToBeAdded.map((user) => user.userId);
+    const req = {
+      roomId: createdRoom?.roomId ?? '',
+      userIds: userIds,
+    };
+    try {
+      await roomUserClient.addUsers(req);
+      handleNextStep();
+      resetError();
+    } catch (err) {
+      handleError(err);
+    } finally {
+    }
+  }, [handleError, handleNextStep, resetError, createdRoom, usersToBeAdded]);
+
+  const { data: rooms } = useFetch(() => roomClient.fetchAllByUserID(firebaseUser?.uid ?? ''), {
+    enabled: !!firebaseUser,
   });
 
   return {
     rooms: rooms ?? [],
     formState,
     currentStep,
-    isCreationFailed: hasError,
+    isActionFailed: hasError,
     loading,
+    searchedUsers,
+    usersToBeAdded,
+    createdRoom,
     createRoom,
     selectRoom,
     register,
     handleSubmit,
     handleNextStep,
+    handlePrevStep,
     handleClose,
+    serachUsers,
+    addUserToList,
+    removeUserFromList,
+    addUsersToRoom,
   };
 };

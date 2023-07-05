@@ -16,14 +16,22 @@ export const ChatContainer: FC = () => {
     rooms,
     formState,
     currentStep,
-    isCreationFailed,
+    isActionFailed,
     loading,
+    searchedUsers,
+    usersToBeAdded,
+    createdRoom,
     createRoom,
     selectRoom,
     handleNextStep,
+    handlePrevStep,
     handleClose,
     register,
     handleSubmit,
+    serachUsers,
+    addUserToList,
+    removeUserFromList,
+    addUsersToRoom,
   } = useChatRooms();
   const { sendMessage, handleChange, messageContent } = useChatMessages();
 
@@ -38,17 +46,25 @@ export const ChatContainer: FC = () => {
       selectedRoomId={selectedRoomId}
       formState={formState}
       currentStep={currentStep}
-      isRoomCreationFailed={isCreationFailed}
+      isActionFailed={isActionFailed}
       loading={loading}
+      searchedUsers={searchedUsers}
+      usersToBeAdded={usersToBeAdded}
+      createdRoom={createdRoom}
       sendMessage={sendMessage}
       handleChange={handleChange}
       handleLogout={logout}
       toggleDropdown={toggleDropdown}
       selectRoom={selectRoom}
       handleNextStep={handleNextStep}
+      handlePrevStep={handlePrevStep}
       handleCloseModal={handleClose}
       register={register}
       handleSubmit={handleSubmit}
+      searchUsers={serachUsers}
+      addUserToList={addUserToList}
+      removeUserFromList={removeUserFromList}
+      addUsersToRoom={addUsersToRoom}
     />
   );
 };

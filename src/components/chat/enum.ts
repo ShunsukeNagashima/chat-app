@@ -3,7 +3,8 @@ export const ROOM_CREATION_STEPS = {
   CREATE_ROOM: 1,
   CREATE_ROOM_RESULT: 2,
   ADD_USERS: 3,
-  ADD_USERS_RESULT: 4,
+  ADD_USERS_CONFIRM: 4,
+  ADD_USERS_RESULT: 5,
 } as const;
 
 export type RoomCreationSteps = typeof ROOM_CREATION_STEPS;

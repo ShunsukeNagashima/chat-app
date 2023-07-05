@@ -1,8 +1,10 @@
 import { FC } from 'react';
 
-import { User } from 'firebase/auth';
+import { User as FirebaseUser } from 'firebase/auth';
 import { UseFormRegister, UseFormHandleSubmit, FormState, SubmitHandler } from 'react-hook-form';
 
+import { AddUsersConfirmModal } from '../components/add-users-confirm-modal';
+import { AddUsersModal } from '../components/add-users-modal';
 import { CreateRoomModal } from '../components/create-room-modal';
 import { MessageForm } from '../components/message-form';
 import { MessageList } from '../components/message-list';
@@ -14,28 +16,37 @@ import { Sidebar } from '@/components/chat/components/sidebar';
 import { StepContent } from '@/components/ui/step-content';
 import { Message } from '@/domain/models/message';
 import { Room } from '@/infra/room/entity/room';
+import { User } from '@/infra/user/entity/user';
 
 type ChatPresenterProps = {
   messages: Message[];
   messageContent: string;
-  user: User | null;
+  user: FirebaseUser | null;
   isOpen: boolean;
   chatRooms: Room[];
   selectedRoomId: string;
   formState: FormState<ChatRoomFormInput>;
   currentStep: RoomCreationStepsEnum;
-  isRoomCreationFailed: boolean;
+  isActionFailed: boolean;
   loading: boolean;
+  searchedUsers: User[];
+  usersToBeAdded: User[];
+  createdRoom: Room | undefined;
   sendMessage: (event: React.FormEvent<HTMLFormElement>) => void;
   handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   toggleDropdown: () => void;
   handleLogout: () => Promise<void>;
   selectRoom: (id: string) => void;
   handleNextStep: () => void;
+  handlePrevStep: () => void;
   handleCloseModal: () => void;
   createRoom: SubmitHandler<ChatRoomFormInput>;
   register: UseFormRegister<ChatRoomFormInput>;
   handleSubmit: UseFormHandleSubmit<ChatRoomFormInput>;
+  searchUsers: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  addUserToList: (user: User) => void;
+  removeUserFromList: (id: string) => void;
+  addUsersToRoom: () => Promise<void>;
 };
 
 export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
@@ -48,18 +59,26 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
     selectedRoomId,
     formState,
     currentStep,
-    isRoomCreationFailed,
+    isActionFailed,
     loading,
+    searchedUsers,
+    usersToBeAdded,
+    createdRoom,
     sendMessage,
     handleChange,
     toggleDropdown,
     handleLogout,
     selectRoom,
     handleNextStep,
+    handlePrevStep,
     handleCloseModal,
     createRoom,
     register,
     handleSubmit,
+    searchUsers,
+    addUserToList,
+    removeUserFromList,
+    addUsersToRoom,
   } = props;
 
   if (!user) {
@@ -104,7 +123,38 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
           handleNextStep={handleNextStep}
           handleClose={handleCloseModal}
           currentStep={currentStep}
-          hasError={isRoomCreationFailed}
+          hasError={isActionFailed}
+        />
+      </StepContent>
+
+      <StepContent step={ROOM_CREATION_STEPS.ADD_USERS} currentStep={currentStep}>
+        <AddUsersModal
+          users={searchedUsers}
+          usersToBeAdded={usersToBeAdded}
+          handleClose={handleCloseModal}
+          searchUsers={searchUsers}
+          addUserToList={addUserToList}
+          removeUserFromList={removeUserFromList}
+          handleNextStep={handleNextStep}
+        />
+      </StepContent>
+
+      <StepContent step={ROOM_CREATION_STEPS.ADD_USERS_CONFIRM} currentStep={currentStep}>
+        <AddUsersConfirmModal
+          room={createdRoom}
+          usersToBeAdded={usersToBeAdded}
+          handleClose={handleCloseModal}
+          handlePrevStep={handlePrevStep}
+          addUsers={addUsersToRoom}
+        />
+      </StepContent>
+
+      <StepContent step={ROOM_CREATION_STEPS.ADD_USERS_RESULT} currentStep={currentStep}>
+        <ResultModal
+          handleNextStep={handleNextStep}
+          handleClose={handleCloseModal}
+          currentStep={currentStep}
+          hasError={isActionFailed}
         />
       </StepContent>
     </div>
