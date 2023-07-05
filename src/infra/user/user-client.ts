@@ -8,6 +8,8 @@ import {
   CreateUserResponse,
   FetchByIdResponse,
   FetchAllRoomsByUserIdReponse,
+  SearchUsersRequest,
+  SearchUsersResponse,
 } from './entity/user';
 
 import { kyInstance } from '@/lib/ky';
@@ -29,6 +31,13 @@ export class UserClient {
     const response = await this.ky
       .get(`api/users/${id}/rooms`)
       .json<FetchAllRoomsByUserIdReponse>();
+    return response.result;
+  }
+
+  async searchUsers(req: SearchUsersRequest): Promise<User[]> {
+    const response = await this.ky
+      .get('api/users/search', { searchParams: req })
+      .json<SearchUsersResponse>();
     return response.result;
   }
 }
