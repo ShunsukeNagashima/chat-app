@@ -8,7 +8,7 @@ const selectColor = (color: ButtonColor): string => {
       return 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500';
     case 'success':
       return 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
-    case 'error':
+    case 'dangerous':
       return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
     default:
       return 'bg-gray-600 hover:bg-gray-700 focus:ring-gray-500';

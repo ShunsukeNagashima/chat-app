@@ -28,7 +28,7 @@ export const Button: FC<ButtonProps> = (props) => {
   return (
     <button
       {...buttonProps}
-      className={`min-w-[120px] w-auto flex justify-center items-center rounded-md border border-transparent shadow-sm font-medium text-white sm:mt-0 sm:w-auto sm:text-sm ${className.button} `}
+      className={`min-w-[100px] w-auto flex justify-center items-center rounded-md border border-transparent shadow-sm font-medium text-white sm:mt-0 sm:w-auto sm:text-sm ${className.button} `}
       disabled={disabled}
       aria-disabled={disabled}
     >
