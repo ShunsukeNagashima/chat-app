@@ -5,8 +5,8 @@ export type Room = {
 };
 
 export const roomType = {
-  Public: 'public',
-  Private: 'private',
+  public: 'public',
+  private: 'private',
 };
 
 export type RoomTypeEnum = keyof typeof roomType;

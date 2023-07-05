@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
-import { AiFillPlusSquare } from 'react-icons/ai';
+import { AiFillPlusSquare, AiFillLock } from 'react-icons/ai';
+import { BiConversation } from 'react-icons/bi';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 
 import { Room } from '@/infra/room/entity/room';
@@ -48,12 +49,13 @@ export const Sidebar: FC<SidebarProps> = (props) => {
             chatRooms.map((room) => {
               return (
                 <button
-                  className={`w-full p-2 rounded-md text-start hover:bg-gray-700  ${
+                  className={`w-full p-2 rounded-md text-start hover:bg-gray-700 flex items-center gap-1 ${
                     room.roomId === selectedRoomId && 'font-bold text-white'
                   }`}
                   onClick={() => selectRoom(room.roomId)}
                   key={room.roomId}
                 >
+                  {room.roomType === 'public' ? <BiConversation /> : <AiFillLock />}
                   {room.name}
                 </button>
               );
