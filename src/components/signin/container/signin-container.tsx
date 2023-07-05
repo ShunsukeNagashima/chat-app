@@ -48,7 +48,6 @@ export const SigninContainer = () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      console.log(result);
       const idToken = await result.user.getIdToken();
       await registerUser(
         result.user.uid,
