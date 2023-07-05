@@ -4,8 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '../../enum';
-
 import { ChatRoomFormInput } from '@/components/chat/type';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
@@ -16,6 +14,7 @@ import { roomClient } from '@/infra/room/room-client';
 import { roomUserClient } from '@/infra/room-user/room-user-client';
 import { User } from '@/infra/user/entity/user';
 import { userClient } from '@/infra/user/user-client';
+import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '@/lib/enum';
 import { useChatStore } from '@/store/chat-store';
 
 const schema = z.object({

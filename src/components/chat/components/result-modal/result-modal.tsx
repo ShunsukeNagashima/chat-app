@@ -1,9 +1,8 @@
 import { FC, ReactNode } from 'react';
 
-import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '../../enum';
-
 import { Button } from '@/components/ui/button/button';
 import { Modal } from '@/components/ui/modal';
+import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '@/lib/enum';
 
 type ResultModalProps = {
   hasError: boolean;

@@ -9,7 +9,6 @@ import { CreateRoomModal } from '../components/create-room-modal';
 import { MessageForm } from '../components/message-form';
 import { MessageList } from '../components/message-list';
 import { ResultModal } from '../components/result-modal';
-import { ROOM_CREATION_STEPS, RoomCreationStepsEnum } from '../enum';
 import { ChatRoomFormInput } from '../type';
 
 import { Sidebar } from '@/components/chat/components/sidebar';
@@ -17,6 +16,7 @@ import { StepContent } from '@/components/ui/step-content';
 import { Message } from '@/domain/models/message';
 import { Room } from '@/infra/room/entity/room';
 import { User } from '@/infra/user/entity/user';
+import { ROOM_CREATION_STEPS, RoomCreationStepsEnum } from '@/lib/enum';
 
 type ChatPresenterProps = {
   messages: Message[];
