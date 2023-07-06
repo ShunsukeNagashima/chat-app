@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { firebaseApp } from '@/lib/firebase-client';
 import { useAuthStore } from '@/store/auth-store';
-import { useWebSocketStore } from '@/store/web-socket-store';
+import { useWebSocketStore } from '@/store/websocket-store';
 
 const auth = getAuth(firebaseApp);
 
