@@ -2,6 +2,6 @@
 
 import { Chat } from '@/components/chat';
 
-export default async function Home() {
+export default async function HomePage() {
   return <Chat />;
 }
