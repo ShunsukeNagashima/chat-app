@@ -1,10 +1,11 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { SubmitHandler, set, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
+import { RoomUserEvent } from '@/domain/models/room-user-event';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
@@ -14,8 +15,9 @@ import { roomClient } from '@/infra/room/room-client';
 import { roomUserClient } from '@/infra/room-user/room-user-client';
 import { User } from '@/infra/user/entity/user';
 import { userClient } from '@/infra/user/user-client';
-import { RoomCreationStepsEnum, ROOM_CREATION_STEPS } from '@/lib/enum';
+import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
 import { useChatStore } from '@/store/chat-store';
+import { useWebSocketStore } from '@/store/websocket-store';
 
 const schema = z.object({
   name: z
@@ -36,6 +38,7 @@ export const useChatRooms = () => {
   const { user: firebaseUser } = useAuth();
   const { hasError, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
+  const { wsInstance } = useWebSocketStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
     resolver: zodResolver(schema),
     mode: 'onChange',
@@ -81,6 +84,14 @@ export const useChatRooms = () => {
       try {
         const room = await roomClient.create({ ...data, ownerId: firebaseUser.uid });
         setCreatedRoom(room);
+        const eventData: RoomUserEvent = {
+          type: EVENT_TYPES.USER_JOINED,
+          data: {
+            userId: firebaseUser.uid,
+            roomId: room.roomId,
+          },
+        };
+        wsInstance?.send(JSON.stringify(eventData));
         handleNextStep();
         resetError();
       } catch (err) {
@@ -89,7 +100,15 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [firebaseUser, handleNextStep, startLoading, finishLoading, handleError, resetError],
+    [
+      firebaseUser,
+      wsInstance,
+      handleNextStep,
+      startLoading,
+      finishLoading,
+      handleError,
+      resetError,
+    ],
   );
 
   const serachUsers = useCallback(
@@ -131,26 +150,67 @@ export const useChatRooms = () => {
     [setUsersToBeAdded, usersToBeAdded],
   );
 
-  const addUsersToRoom = useCallback(async () => {
-    const userIds = usersToBeAdded.map((user) => user.userId);
-    const req = {
-      roomId: createdRoom?.roomId ?? '',
-      userIds: userIds,
-    };
-    try {
-      await roomUserClient.addUsers(req);
-      handleNextStep();
-      resetError();
-      setUsersToBeAdded([]);
-    } catch (err) {
-      handleError(err);
-    } finally {
-    }
-  }, [handleError, handleNextStep, resetError, createdRoom, usersToBeAdded]);
+  const addUsersToRoom = useCallback(
+    async (room: Room) => {
+      const userIds = usersToBeAdded.map((user) => user.userId);
+      const req = {
+        roomId: room.roomId,
+        userIds: userIds,
+      };
+      try {
+        startLoading();
+        await roomUserClient.addUsers(req);
+        for (const userId of userIds) {
+          const eventData: RoomUserEvent = {
+            type: EVENT_TYPES.USER_JOINED,
+            data: {
+              userId,
+              roomId: room.roomId,
+            },
+          };
+          wsInstance?.send(JSON.stringify(eventData));
+        }
+        handleNextStep();
+        resetError();
+        setUsersToBeAdded([]);
+      } catch (err) {
+        handleError(err);
+      } finally {
+        finishLoading();
+      }
+    },
+    [
+      usersToBeAdded,
+      wsInstance,
+      startLoading,
+      finishLoading,
+      handleError,
+      handleNextStep,
+      resetError,
+    ],
+  );
 
-  const { data: rooms } = useFetch(() => roomClient.fetchAllByUserID(firebaseUser?.uid ?? ''), {
-    enabled: !!firebaseUser,
-  });
+  const { data: rooms, refetch } = useFetch(
+    () => roomClient.fetchAllByUserID(firebaseUser?.uid ?? ''),
+    {
+      enabled: !!firebaseUser,
+    },
+  );
+
+  useEffect(() => {
+    if (!wsInstance) return;
+
+    wsInstance.onmessage = async (event) => {
+      const eventData = JSON.parse(event.data) as RoomUserEvent;
+      if (eventData.type === EVENT_TYPES.USER_JOINED) {
+        try {
+          await refetch();
+        } catch (err) {
+          handleError(err);
+        }
+      }
+    };
+  }, [wsInstance, rooms, refetch, handleError]);
 
   return {
     rooms: rooms ?? [],

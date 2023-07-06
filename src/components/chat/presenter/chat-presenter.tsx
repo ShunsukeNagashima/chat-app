@@ -46,7 +46,7 @@ type ChatPresenterProps = {
   searchUsers: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
   addUserToList: (user: User) => void;
   removeUserFromList: (id: string) => void;
-  addUsersToRoom: () => Promise<void>;
+  addUsersToRoom: (room: Room) => Promise<void>;
 };
 
 export const ChatPresenter: FC<ChatPresenterProps> = (props) => {

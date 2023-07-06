@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Message } from '@/domain/models/message';
+import { MessageEvent } from '@/domain/models/message-event';
+import { EVENT_TYPES } from '@/lib/enum';
 import { useChatStore } from '@/store/chat-store';
 
 export const useChatMessages = () => {
@@ -12,7 +14,11 @@ export const useChatMessages = () => {
     (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const message: Message = { user: username, content: messageContent };
-      socketRef.current?.send(JSON.stringify(message));
+      const rawEvent: MessageEvent = {
+        type: EVENT_TYPES.MESSAGE_SENT,
+        data: message,
+      };
+      socketRef.current?.send(JSON.stringify(rawEvent));
       setMessageContent('');
     },
     [username, messageContent],
@@ -37,8 +43,9 @@ export const useChatMessages = () => {
     };
 
     socketRef.current.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      addMessage(message);
+      const eventData = JSON.parse(event.data) as MessageEvent;
+      console.log(eventData);
+      addMessage(eventData.data);
     };
 
     return () => {

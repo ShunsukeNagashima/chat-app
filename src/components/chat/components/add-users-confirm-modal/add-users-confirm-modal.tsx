@@ -10,15 +10,19 @@ type AddUsersConfirmModalProps = {
   usersToBeAdded: User[];
   handleClose: () => void;
   handlePrevStep: () => void;
-  addUsers: () => Promise<void>;
+  addUsers: (room: Room) => Promise<void>;
 };
 
 export const AddUsersConfirmModal: FC<AddUsersConfirmModalProps> = (props) => {
   const { room, usersToBeAdded, handleClose, handlePrevStep, addUsers } = props;
 
+  if (!room) {
+    return null;
+  }
+
   return (
     <Modal title='Confirmation' handleClose={handleClose} closeOnOverlayClick={false}>
-      <p className='mb-2'>{`These users will be added to ${room?.name ?? 'the room'}`}</p>
+      <p className='mb-2'>{`These users will be added to ${room.name}`}</p>
       <div>
         <ul className='overflow-y-auto h-64 border border-gray-700 p-2 mb-4'>
           {usersToBeAdded.map((user, index) => (
@@ -29,7 +33,7 @@ export const AddUsersConfirmModal: FC<AddUsersConfirmModalProps> = (props) => {
         </ul>
 
         <div className='action-btns flex justify-end space-x-4'>
-          <Button color='primary' disabled={!usersToBeAdded.length} onClick={addUsers}>
+          <Button color='primary' disabled={!usersToBeAdded.length} onClick={() => addUsers(room)}>
             Add Users
           </Button>
           <Button onClick={handlePrevStep}>Back</Button>
