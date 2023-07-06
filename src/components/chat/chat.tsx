@@ -1,62 +1,29 @@
 import { FC } from 'react';
 
-import { User as FirebaseUser } from 'firebase/auth';
-import { UseFormRegister, UseFormHandleSubmit, FormState, SubmitHandler } from 'react-hook-form';
-
-import { AddUsersConfirmModal } from '../components/add-users-confirm-modal';
-import { AddUsersModal } from '../components/add-users-modal';
-import { CreateRoomModal } from '../components/create-room-modal';
-import { MessageForm } from '../components/message-form';
-import { MessageList } from '../components/message-list';
-import { ResultModal } from '../components/result-modal';
-import { ChatRoomFormInput } from '../type';
+import {
+  MessageList,
+  MessageForm,
+  CreateRoomModal,
+  ResultModal,
+  AddUsersModal,
+  AddUsersConfirmModal,
+} from './components';
+import { useChatMessages } from './hooks/useChatMessages';
+import { useChatRooms } from './hooks/useChatRooms';
 
 import { Sidebar } from '@/components/chat/components/sidebar';
 import { StepContent } from '@/components/ui/step-content';
-import { Message } from '@/domain/models/message';
-import { Room } from '@/infra/room/entity/room';
-import { User } from '@/infra/user/entity/user';
+import { useAuth } from '@/hooks/useAuth/useAuth';
+import { useBoolean } from '@/hooks/useBoolean';
 import { ROOM_CREATION_STEPS, RoomCreationStepsEnum } from '@/lib/enum';
+import { useChatStore } from '@/store/chat-store';
 
-type ChatPresenterProps = {
-  messages: Message[];
-  messageContent: string;
-  user: FirebaseUser | null;
-  isOpen: boolean;
-  chatRooms: Room[];
-  selectedRoomId: string;
-  formState: FormState<ChatRoomFormInput>;
-  currentStep: RoomCreationStepsEnum;
-  isActionFailed: boolean;
-  loading: boolean;
-  searchedUsers: User[];
-  usersToBeAdded: User[];
-  createdRoom: Room | undefined;
-  sendMessage: (event: React.FormEvent<HTMLFormElement>) => void;
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  toggleDropdown: () => void;
-  handleLogout: () => Promise<void>;
-  selectRoom: (id: string) => void;
-  handleNextStep: () => void;
-  handlePrevStep: () => void;
-  handleCloseModal: () => void;
-  createRoom: SubmitHandler<ChatRoomFormInput>;
-  register: UseFormRegister<ChatRoomFormInput>;
-  handleSubmit: UseFormHandleSubmit<ChatRoomFormInput>;
-  searchUsers: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
-  addUserToList: (user: User) => void;
-  removeUserFromList: (id: string) => void;
-  addUsersToRoom: (room: Room) => Promise<void>;
-};
-
-export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
+export const Chat: FC = () => {
+  const { messages, selectedRoomId } = useChatStore();
+  const [isOpenDropdown, { toggle: toggleDropdown }] = useBoolean(false);
+  const { user, logout } = useAuth();
   const {
-    messages,
-    messageContent,
-    user,
-    isOpen,
-    chatRooms,
-    selectedRoomId,
+    rooms,
     formState,
     currentStep,
     isActionFailed,
@@ -64,36 +31,29 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
     searchedUsers,
     usersToBeAdded,
     createdRoom,
-    sendMessage,
-    handleChange,
-    toggleDropdown,
-    handleLogout,
+    createRoom,
     selectRoom,
     handleNextStep,
     handlePrevStep,
-    handleCloseModal,
-    createRoom,
+    handleClose,
     register,
     handleSubmit,
     searchUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,
-  } = props;
-
-  if (!user) {
-    return null;
-  }
+  } = useChatRooms();
+  const { sendMessage, handleChange, messageContent } = useChatMessages();
 
   return (
     <div className='flex h-screen bg-gray-800'>
       <Sidebar
-        isOpen={isOpen}
+        isOpen={isOpenDropdown}
         selectedRoomId={selectedRoomId}
-        handleLogout={handleLogout}
+        handleLogout={logout}
         toggleDropdown={toggleDropdown}
         selectRoom={selectRoom}
-        chatRooms={chatRooms}
+        chatRooms={rooms}
         openCreateRoomModal={handleNextStep}
       />
       <main className='flex flex-1 flex-col h-screen justify-between'>
@@ -111,7 +71,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
         <CreateRoomModal
           formState={formState}
           loading={loading}
-          handleClose={handleCloseModal}
+          handleClose={handleClose}
           register={register}
           handleSubmit={handleSubmit}
           createRoom={createRoom}
@@ -121,7 +81,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
       <StepContent step={ROOM_CREATION_STEPS.CREATE_ROOM_RESULT} currentStep={currentStep}>
         <ResultModal
           handleNextStep={handleNextStep}
-          handleClose={handleCloseModal}
+          handleClose={handleClose}
           currentStep={currentStep}
           hasError={isActionFailed}
         />
@@ -131,7 +91,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
         <AddUsersModal
           users={searchedUsers}
           usersToBeAdded={usersToBeAdded}
-          handleClose={handleCloseModal}
+          handleClose={handleClose}
           searchUsers={searchUsers}
           addUserToList={addUserToList}
           removeUserFromList={removeUserFromList}
@@ -143,7 +103,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
         <AddUsersConfirmModal
           room={createdRoom}
           usersToBeAdded={usersToBeAdded}
-          handleClose={handleCloseModal}
+          handleClose={handleClose}
           handlePrevStep={handlePrevStep}
           addUsers={addUsersToRoom}
         />
@@ -152,7 +112,7 @@ export const ChatPresenter: FC<ChatPresenterProps> = (props) => {
       <StepContent step={ROOM_CREATION_STEPS.ADD_USERS_RESULT} currentStep={currentStep}>
         <ResultModal
           handleNextStep={handleNextStep}
-          handleClose={handleCloseModal}
+          handleClose={handleClose}
           currentStep={currentStep}
           hasError={isActionFailed}
         />
