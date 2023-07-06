@@ -1,7 +1,7 @@
-import { useEffect, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { SubmitHandler, set, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
@@ -141,6 +141,7 @@ export const useChatRooms = () => {
       await roomUserClient.addUsers(req);
       handleNextStep();
       resetError();
+      setUsersToBeAdded([]);
     } catch (err) {
       handleError(err);
     } finally {
