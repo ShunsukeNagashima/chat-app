@@ -1,7 +1,7 @@
 'use client';
 
-import { ChatContainer } from '@/components/chat/container';
+import { Chat } from '@/components/chat';
 
-export default async function Home() {
-  return <ChatContainer />;
+export default async function HomePage() {
+  return <Chat />;
 }

@@ -111,7 +111,7 @@ export const useChatRooms = () => {
     ],
   );
 
-  const serachUsers = useCallback(
+  const searchUsers = useCallback(
     async (event: React.ChangeEvent<HTMLInputElement>) => {
       const query = event.target.value;
       const req = {
@@ -228,7 +228,7 @@ export const useChatRooms = () => {
     handleNextStep,
     handlePrevStep,
     handleClose,
-    serachUsers,
+    searchUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,

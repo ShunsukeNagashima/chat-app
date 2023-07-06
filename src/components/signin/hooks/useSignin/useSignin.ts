@@ -11,8 +11,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 
-import { SigninPresenter } from '../presenter';
-
 import { userClient } from '@/infra/user/user-client';
 import { firebaseApp } from '@/lib/firebase-client';
 import { useAuthStore } from '@/store/auth-store';
@@ -20,7 +18,7 @@ import { useAuthStore } from '@/store/auth-store';
 const auth = getAuth(firebaseApp);
 const emailSchema = z.string().email();
 
-export const SigninContainer = () => {
+export const useSignin = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -122,13 +120,5 @@ export const SigninContainer = () => {
     })();
   }, [setUser, router, registerUser]);
 
-  return (
-    <SigninPresenter
-      email={email}
-      error={error}
-      handleChange={handleChange}
-      handleSubmit={handleSubmit}
-      handleGoogleLogin={handleGoogleLogin}
-    />
-  );
+  return { email, error, handleChange, handleSubmit, handleGoogleLogin };
 };
