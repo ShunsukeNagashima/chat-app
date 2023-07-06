@@ -1,7 +1,7 @@
 'use client';
 
-import { SigninContainer } from '@/components/signin/container';
+import { Signin } from '@/components/signin';
 
-export default async function Signin() {
-  return <SigninContainer />;
+export default async function SigninPage() {
+  return <Signin />;
 }

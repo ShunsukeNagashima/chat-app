@@ -1,15 +1,8 @@
-import { FC } from 'react';
+import { useSignin } from './hooks/useSignin';
 
-type SigninPresenterProps = {
-  email: string;
-  error: string;
-  handleSubmit: (e: React.FormEvent) => void;
-  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleGoogleLogin: () => void;
-};
+export const Signin = () => {
+  const { error, email, handleSubmit, handleChange, handleGoogleLogin } = useSignin();
 
-export const SigninPresenter: FC<SigninPresenterProps> = (props) => {
-  const { email, error, handleSubmit, handleChange, handleGoogleLogin } = props;
   return (
     <div className='min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8'>
       <div className='max-w-md w-full space-y-8'>
