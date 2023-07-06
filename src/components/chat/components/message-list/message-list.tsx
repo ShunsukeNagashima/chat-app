@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { MessageItem } from '../message-item/message-item';
+import { MessageItem } from './components/message-item';
 
 import { Message } from '@/domain/models/message';
 
