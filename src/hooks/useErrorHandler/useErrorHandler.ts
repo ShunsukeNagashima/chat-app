@@ -22,5 +22,9 @@ export function useErrorHandler() {
     }
   }, []);
 
-  return { hasError, handleError, resetError: () => setHasError(false) };
+  const resetError = useCallback(() => {
+    setHasError(false);
+  }, []);
+
+  return { hasError, handleError, resetError };
 }
