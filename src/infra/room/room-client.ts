@@ -3,8 +3,10 @@ import { KyInstance } from 'ky/distribution/types/ky';
 import {
   Room,
   CreateRoomRequest,
+  AddUsersRequest,
   FetchAllByUserIDResponse,
   CreateRoomResponse,
+  AddUsersResponse,
 } from './entity/room';
 
 import { kyInstance } from '@/lib/ky';
@@ -22,6 +24,13 @@ export class RoomClient {
 
   async create(req: CreateRoomRequest): Promise<Room> {
     const response = await this.ky.post('api/rooms', { json: req }).json<CreateRoomResponse>();
+    return response.result;
+  }
+
+  async addUsers(req: AddUsersRequest): Promise<string> {
+    const response = await this.ky
+      .post(`api/rooms/${req.roomId}/users`, { json: { userIds: req.userIds } })
+      .json<AddUsersResponse>();
     return response.result;
   }
 }

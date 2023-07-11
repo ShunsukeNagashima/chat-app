@@ -14,6 +14,11 @@ export type CreateRoomRequest = {
   ownerId: string;
 };
 
+export type AddUsersRequest = {
+  roomId: string;
+  userIds: string[];
+};
+
 // Repsonses
 export type CreateRoomResponse = {
   result: Room;
@@ -21,4 +26,8 @@ export type CreateRoomResponse = {
 
 export type FetchAllByUserIDResponse = {
   result: Room[];
+};
+
+export type AddUsersResponse = {
+  result: string;
 };
