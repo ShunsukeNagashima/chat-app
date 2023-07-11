@@ -1,7 +1,5 @@
 import { KyInstance } from 'ky/distribution/types/ky';
 
-import { Room } from '../room/entity/room';
-
 import {
   CreateUserRequest,
   User,
@@ -25,13 +23,6 @@ export class UserClient {
   async fetchById(id: string): Promise<User> {
     const reponse = await this.ky.get(`api/users/${id}`).json<FetchByIdResponse>();
     return reponse.result;
-  }
-
-  async fetchAllRoomsByUserId(id: string): Promise<Room[]> {
-    const response = await this.ky
-      .get(`api/users/${id}/rooms`)
-      .json<FetchAllRoomsByUserIdReponse>();
-    return response.result;
   }
 
   async searchUsers(req: SearchUsersRequest): Promise<User[]> {
