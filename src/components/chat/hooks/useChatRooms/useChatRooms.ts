@@ -6,15 +6,15 @@ import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
 import { Room } from '@/domain/models/room';
+import { User } from '@/domain/models/user';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { useFetch } from '@/hooks/useFetch';
-import { User } from '@/infra/user/entity/user';
-import { userClient } from '@/infra/user/user-client';
 import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
 import { RoomUserEvent } from '@/lib/websocket-event';
 import { roomRepository } from '@/repository/room/room-repository';
+import { userRepository } from '@/repository/user/user-repository';
 import { useChatStore } from '@/store/chat-store';
 import { useWebSocketStore } from '@/store/websocket-store';
 
@@ -120,8 +120,8 @@ export const useChatRooms = () => {
       };
       startLoading();
       try {
-        const users = await userClient.searchUsers(req);
-        const usersWithoutOwner = users.filter((user) => user.userId !== firebaseUser?.uid);
+        const users = await userRepository.search(req);
+        const usersWithoutOwner = users.filter((user) => user.id !== firebaseUser?.uid);
         setSearchedUsers(usersWithoutOwner);
         resetError();
       } catch (err) {
@@ -143,7 +143,7 @@ export const useChatRooms = () => {
 
   const removeUserFromList = useCallback(
     (userId: string) => {
-      const updatedUserIds = usersToBeAdded.filter((user) => user.userId !== userId);
+      const updatedUserIds = usersToBeAdded.filter((user) => user.id !== userId);
       setUsersToBeAdded(updatedUserIds);
     },
     [setUsersToBeAdded, usersToBeAdded],
@@ -151,7 +151,7 @@ export const useChatRooms = () => {
 
   const addUsersToRoom = useCallback(
     async (room: Room) => {
-      const userIds = usersToBeAdded.map((user) => user.userId);
+      const userIds = usersToBeAdded.map((user) => user.id);
       const req = {
         roomId: room.id,
         userIds: userIds,

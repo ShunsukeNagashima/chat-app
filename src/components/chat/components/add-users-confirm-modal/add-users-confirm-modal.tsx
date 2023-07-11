@@ -3,7 +3,7 @@ import { FC } from 'react';
 import { Modal } from '@/components/ui';
 import { Button } from '@/components/ui';
 import { Room } from '@/domain/models/room';
-import { User } from '@/infra/user/entity/user';
+import { User } from '@/domain/models/user';
 
 type AddUsersConfirmModalProps = {
   room: Room | undefined;
@@ -27,7 +27,7 @@ export const AddUsersConfirmModal: FC<AddUsersConfirmModalProps> = (props) => {
         <ul className='overflow-y-auto h-64 border border-gray-700 p-2 mb-4'>
           {usersToBeAdded.map((user, index) => (
             <li key={index} className='flex justify-between items-center mb-2'>
-              <span>{user.userName}</span>
+              <span>{user.name}</span>
             </li>
           ))}
         </ul>
