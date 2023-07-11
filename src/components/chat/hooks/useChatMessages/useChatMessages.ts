@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import dayjs from 'dayjs';
+
+import { MessageClass } from '@/domain/models/message';
 import { useAuth } from '@/hooks/useAuth';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { EVENT_TYPES } from '@/lib/enum';
@@ -72,8 +75,17 @@ export const useChatMessages = () => {
 
     socketRef.current.onmessage = (event) => {
       const eventData = JSON.parse(event.data) as MessageEvent;
+
       console.log(eventData);
-      addMessage(eventData.data);
+      const message = MessageClass.create({
+        id: eventData.data.messageId,
+        roomId: eventData.data.roomId,
+        userId: eventData.data.userId,
+        content: eventData.data.content,
+        createdAt: dayjs(eventData.data.createdAt),
+      });
+
+      addMessage(message);
     };
 
     return () => {

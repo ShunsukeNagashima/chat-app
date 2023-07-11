@@ -1,4 +1,4 @@
-import { Message } from '@/domain/models/message';
+import { Message } from '@/infra/message/entity/message';
 import { EventTypesEnum } from '@/lib/enum';
 
 export type RoomUserEvent = {
