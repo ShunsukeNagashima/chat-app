@@ -1,13 +1,15 @@
 import { KyInstance } from 'ky/distribution/types/ky';
 
 import {
-  CreateUserRequest,
   User,
+  CreateUserRequest,
   CreateUserResponse,
+  FetchByIdRequest,
   FetchByIdResponse,
-  FetchAllRoomsByUserIdReponse,
   SearchUsersRequest,
   SearchUsersResponse,
+  BatchGetUsersRequest,
+  BatchGetUsersReponse,
 } from './entity/user';
 
 import { kyInstance } from '@/lib/ky';
@@ -20,8 +22,10 @@ export class UserClient {
     return response.result;
   }
 
-  async fetchById(id: string): Promise<User> {
-    const reponse = await this.ky.get(`api/users/${id}`).json<FetchByIdResponse>();
+  async fetchById(req: FetchByIdRequest): Promise<User> {
+    const { userId } = req;
+
+    const reponse = await this.ky.get(`api/users/${userId}`).json<FetchByIdResponse>();
     return reponse.result;
   }
 
@@ -29,6 +33,18 @@ export class UserClient {
     const response = await this.ky
       .get('api/users/search', { searchParams: req })
       .json<SearchUsersResponse>();
+    return response.result;
+  }
+
+  async batchGet(req: BatchGetUsersRequest): Promise<User[]> {
+    const { userIds } = req;
+    const params = new URLSearchParams();
+
+    userIds.forEach((userId) => params.append('userIds', userId));
+
+    const response = await this.ky
+      .get('api/users/batch', { searchParams: params })
+      .json<BatchGetUsersReponse>();
     return response.result;
   }
 }
