@@ -20,7 +20,6 @@ export class MessageClient {
   }
 
   async create(roomId: string, req: CreateMessageRequest): Promise<Message> {
-    console.log(req);
     const response = await this.ky
       .post(`api/rooms/${roomId}/messages`, { json: req })
       .json<CreateMessageResponse>();

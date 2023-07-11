@@ -30,7 +30,6 @@ export const useAuth = () => {
         if (wsInstance) disconnect();
       } else {
         setUser(authUser);
-        console.log(wsInstance);
         if (!wsInstance || wsInstance.readyState !== WebSocket.OPEN) {
           connect(`ws://${process.env.NEXT_PUBLIC_API_HOST}/ws`);
         }
