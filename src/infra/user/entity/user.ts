@@ -17,12 +17,12 @@ export type CreateUserResponse = {
   result: User;
 };
 
-export type FetchByIdResponse = {
-  result: User;
+export type FetchByIdRequest = {
+  userId: string;
 };
 
-export type FetchAllRoomsByUserIdReponse = {
-  result: Room[];
+export type FetchByIdResponse = {
+  result: User;
 };
 
 export type SearchUsersRequest = {
@@ -32,5 +32,13 @@ export type SearchUsersRequest = {
 };
 
 export type SearchUsersResponse = {
+  result: User[];
+};
+
+export type BatchGetUsersRequest = {
+  userIds: string[];
+};
+
+export type BatchGetUsersReponse = {
   result: User[];
 };
