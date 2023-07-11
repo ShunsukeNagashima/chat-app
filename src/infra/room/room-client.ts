@@ -12,7 +12,7 @@ import { kyInstance } from '@/lib/ky';
 export class RoomClient {
   constructor(private readonly ky: KyInstance) {}
 
-  async fetchAllByUserID(userId: string): Promise<Room[]> {
+  async fetchAllByUserId(userId: string): Promise<Room[]> {
     const response = await this.ky
       .get(`api/users/${userId}/rooms`)
       .json<FetchAllByUserIDResponse>();
