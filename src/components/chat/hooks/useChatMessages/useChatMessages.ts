@@ -75,8 +75,6 @@ export const useChatMessages = () => {
 
     socketRef.current.onmessage = (event) => {
       const eventData = JSON.parse(event.data) as MessageEvent;
-
-      console.log(eventData);
       const message = MessageClass.create({
         id: eventData.data.messageId,
         roomId: eventData.data.roomId,

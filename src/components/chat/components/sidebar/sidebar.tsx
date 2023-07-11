@@ -4,7 +4,7 @@ import { AiFillPlusSquare, AiFillLock } from 'react-icons/ai';
 import { BiConversation } from 'react-icons/bi';
 import { RiArrowDropDownLine } from 'react-icons/ri';
 
-import { Room } from '@/infra/room/entity/room';
+import { Room } from '@/domain/models/room';
 
 type SidebarProps = {
   isOpen: boolean;
@@ -50,10 +50,10 @@ export const Sidebar: FC<SidebarProps> = (props) => {
               return (
                 <button
                   className={`w-full p-2 rounded-md text-start hover:bg-gray-700 flex items-center gap-1 ${
-                    room.roomId === selectedRoomId && 'font-bold text-white'
+                    room.id === selectedRoomId && 'font-bold text-white'
                   }`}
-                  onClick={() => selectRoom(room.roomId)}
-                  key={room.roomId}
+                  onClick={() => selectRoom(room.id)}
+                  key={room.id}
                 >
                   {room.roomType === 'public' ? <BiConversation /> : <AiFillLock />}
                   {room.name}

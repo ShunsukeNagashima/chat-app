@@ -29,7 +29,7 @@ export class RoomClient {
 
   async addUsers(roomId: string, req: AddUsersRequest): Promise<string> {
     const response = await this.ky
-      .post(`api/rooms/${roomId}/users`, { json: { req } })
+      .post(`api/rooms/${roomId}/users`, { json: req })
       .json<AddUsersResponse>();
     return response.result;
   }

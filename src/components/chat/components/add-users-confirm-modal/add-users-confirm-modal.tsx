@@ -2,7 +2,7 @@ import { FC } from 'react';
 
 import { Modal } from '@/components/ui';
 import { Button } from '@/components/ui';
-import { Room } from '@/infra/room/entity/room';
+import { Room } from '@/domain/models/room';
 import { User } from '@/infra/user/entity/user';
 
 type AddUsersConfirmModalProps = {
