@@ -1,6 +1,6 @@
 export const ROOM_TYPE = {
   PUBLIC: 'public',
   PRIVATE: 'private',
-};
+} as const;
 
-export type RoomTypeEnum = keyof typeof ROOM_TYPE;
+export type RoomTypeEnum = (typeof ROOM_TYPE)[keyof typeof ROOM_TYPE];
