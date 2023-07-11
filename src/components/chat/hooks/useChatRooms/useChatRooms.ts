@@ -5,7 +5,6 @@ import { SubmitHandler, set, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
-import { RoomUserEvent } from '@/domain/models/room-user-event';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
@@ -16,6 +15,7 @@ import { roomUserClient } from '@/infra/room-user/room-user-client';
 import { User } from '@/infra/user/entity/user';
 import { userClient } from '@/infra/user/user-client';
 import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
+import { RoomUserEvent } from '@/lib/websocket-event';
 import { useChatStore } from '@/store/chat-store';
 import { useWebSocketStore } from '@/store/websocket-store';
 
