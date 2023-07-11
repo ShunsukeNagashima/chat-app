@@ -15,7 +15,6 @@ export type CreateRoomRequest = {
 };
 
 export type AddUsersRequest = {
-  roomId: string;
   userIds: string[];
 };
 
