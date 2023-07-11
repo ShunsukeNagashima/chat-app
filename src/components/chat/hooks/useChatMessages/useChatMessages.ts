@@ -1,27 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { Message } from '@/domain/models/message';
-import { MessageEvent } from '@/domain/models/message-event';
+import { useAuth } from '@/hooks/useAuth';
+import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { EVENT_TYPES } from '@/lib/enum';
+import { MessageEvent } from '@/lib/websocket-event';
+import { messageRepository } from '@/repository/message/message-repository';
 import { useChatStore } from '@/store/chat-store';
 
 export const useChatMessages = () => {
-  const { addMessage, username, selectedRoomId } = useChatStore();
+  const { messages, selectedRoomId, addMessage, setMessages } = useChatStore();
   const [messageContent, setMessageContent] = useState('');
+  const { resetError, handleError } = useErrorHandler();
+  const { user } = useAuth();
   const socketRef = useRef<WebSocket>();
 
   const sendMessage = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      if (!selectedRoomId || !user) return;
       event.preventDefault();
-      const message: Message = { user: username, content: messageContent };
-      const rawEvent: MessageEvent = {
-        type: EVENT_TYPES.MESSAGE_SENT,
-        data: message,
-      };
-      socketRef.current?.send(JSON.stringify(rawEvent));
-      setMessageContent('');
+      try {
+        const message = await messageRepository.create({
+          roomId: selectedRoomId,
+          userId: user.uid,
+          content: messageContent,
+        });
+        resetError();
+        const rawEvent = {
+          type: EVENT_TYPES.MESSAGE_SENT,
+          data: message,
+        };
+        socketRef.current?.send(JSON.stringify(rawEvent));
+        setMessageContent('');
+      } catch (err) {
+        handleError(err);
+      }
     },
-    [username, messageContent],
+    [user, messageContent, selectedRoomId, handleError, resetError],
   );
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,6 +44,20 @@ export const useChatMessages = () => {
 
   useEffect(() => {
     if (!selectedRoomId) return;
+
+    const fetchMessages = async () => {
+      try {
+        const { messages, nextKey } = await messageRepository.fetchAllByRoomId({
+          roomId: selectedRoomId,
+        });
+        setMessages(messages);
+        resetError();
+      } catch (err) {
+        handleError(err);
+      }
+    };
+    fetchMessages();
+
     socketRef.current = new WebSocket(
       `ws://${process.env.NEXT_PUBLIC_API_HOST}/ws/${selectedRoomId}`,
     );
@@ -51,7 +79,7 @@ export const useChatMessages = () => {
     return () => {
       socketRef.current?.close();
     };
-  }, [addMessage, selectedRoomId]);
+  }, [selectedRoomId, setMessages, addMessage, handleError, resetError]);
 
-  return { sendMessage, handleChange, messageContent };
+  return { messageContent, messages, sendMessage, handleChange };
 };

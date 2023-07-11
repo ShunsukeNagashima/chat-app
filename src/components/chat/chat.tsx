@@ -19,7 +19,7 @@ import { ROOM_CREATION_STEPS, RoomCreationStepsEnum } from '@/lib/enum';
 import { useChatStore } from '@/store/chat-store';
 
 export const Chat: FC = () => {
-  const { messages, selectedRoomId } = useChatStore();
+  const { selectedRoomId } = useChatStore();
   const [isOpenDropdown, { toggle: toggleDropdown }] = useBoolean(false);
   const { user, logout } = useAuth();
   const {
@@ -43,7 +43,7 @@ export const Chat: FC = () => {
     removeUserFromList,
     addUsersToRoom,
   } = useChatRooms();
-  const { sendMessage, handleChange, messageContent } = useChatMessages();
+  const { sendMessage, handleChange, messages, messageContent } = useChatMessages();
 
   return (
     <div className='flex h-screen bg-gray-800'>
