@@ -1,3 +1,4 @@
+// Entity
 export type Message = {
   messageId: string;
   userId: string;
@@ -6,20 +7,18 @@ export type Message = {
   createdAt: Date;
 };
 
-export type FetchAllByRoomIdRequest = {
-  roomId: string;
-};
-
-export type FetchAllByRoomIdResponse = {
-  result: Message[];
-  nextKey: string;
-};
-
+// Requests
 export type CreateMessageRequest = {
   userId: string;
   content: string;
 };
 
+// Resonses
 export type CreateMessageResponse = {
   result: Message;
+};
+
+export type FetchAllByRoomIdResponse = {
+  result: Message[];
+  nextKey: string;
 };

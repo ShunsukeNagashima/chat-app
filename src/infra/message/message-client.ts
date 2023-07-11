@@ -1,15 +1,15 @@
 import { KyInstance } from 'ky/distribution/types/ky';
 
 import {
-  FetchAllByRoomIdResponse,
   Message,
+  FetchAllByRoomIdResponse,
   CreateMessageRequest,
   CreateMessageResponse,
 } from './entity/message';
 
 import { kyInstance } from '@/lib/ky';
 
-class MessageClient {
+export class MessageClient {
   constructor(private readonly ky: KyInstance) {}
 
   async fetchAllByRoomId(roomId: string): Promise<{ messages: Message[]; nextKey: string }> {
@@ -32,7 +32,7 @@ class MessageClient {
   }
 
   async update(roomId: string, messageId: string, content: string): Promise<void> {
-    const response = await this.ky.put(`api/rooms/${roomId}/messages/${messageId}`, {
+    await this.ky.put(`api/rooms/${roomId}/messages/${messageId}`, {
       json: { content },
     });
   }
