@@ -52,7 +52,7 @@ export class MessageRepositoryImpl implements MessageRepository {
       });
     });
 
-    return { messages, nextKey: res.nextKey };
+    return { messages: messages.reverse(), nextKey: res.nextKey };
   }
 
   async update(payload: UpdateMessagePayload): Promise<void> {
