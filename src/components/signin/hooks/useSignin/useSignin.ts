@@ -11,8 +11,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 
-import { userClient } from '@/infra/user/user-client';
 import { firebaseApp } from '@/lib/firebase-client';
+import { userRepository } from '@/repository/user/user-repository';
 import { useAuthStore } from '@/store/auth-store';
 
 const auth = getAuth(firebaseApp);
@@ -34,7 +34,7 @@ export const useSignin = () => {
       };
 
       try {
-        const result = await userClient.create(req);
+        await userRepository.create(req);
       } catch (err) {
         console.error('Failed to register user', err);
       }

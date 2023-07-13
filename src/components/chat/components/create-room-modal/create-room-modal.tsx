@@ -5,7 +5,7 @@ import { UseFormRegister, UseFormHandleSubmit, SubmitHandler, FormState } from '
 import { ChatRoomFormInput } from '../../type';
 
 import { Button, Modal } from '@/components/ui';
-import { roomType } from '@/infra/room/entity/room';
+import { ROOM_TYPE } from '@/lib/enum';
 
 type CreateRoomModalProps = {
   formState: FormState<ChatRoomFormInput>;
@@ -44,7 +44,7 @@ export const CreateRoomModal: FC<CreateRoomModalProps> = (props) => {
             className='mt-1 block px-4 py-2 w-full rounded-md text-gray-200 bg-gray-700 border border-gray-700 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50'
             {...register('roomType')}
           >
-            {Object.entries(roomType).map(([key, value], i) => {
+            {Object.entries(ROOM_TYPE).map(([key, value], i) => {
               return (
                 <option key={i} value={value}>
                   {key}

@@ -5,17 +5,16 @@ import { SubmitHandler, set, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
-import { RoomUserEvent } from '@/domain/models/room-user-event';
+import { Room } from '@/domain/models/room';
+import { User } from '@/domain/models/user';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { useFetch } from '@/hooks/useFetch';
-import { Room } from '@/infra/room/entity/room';
-import { roomClient } from '@/infra/room/room-client';
-import { roomUserClient } from '@/infra/room-user/room-user-client';
-import { User } from '@/infra/user/entity/user';
-import { userClient } from '@/infra/user/user-client';
 import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
+import { RoomUserEvent } from '@/lib/websocket-event';
+import { roomRepository } from '@/repository/room/room-repository';
+import { userRepository } from '@/repository/user/user-repository';
 import { useChatStore } from '@/store/chat-store';
 import { useWebSocketStore } from '@/store/websocket-store';
 
@@ -82,13 +81,13 @@ export const useChatRooms = () => {
       if (!firebaseUser) return;
       startLoading();
       try {
-        const room = await roomClient.create({ ...data, ownerId: firebaseUser.uid });
+        const room = await roomRepository.create({ ...data, ownerId: firebaseUser.uid });
         setCreatedRoom(room);
         const eventData: RoomUserEvent = {
           type: EVENT_TYPES.USER_JOINED,
           data: {
             userId: firebaseUser.uid,
-            roomId: room.roomId,
+            roomId: room.id,
           },
         };
         wsInstance?.send(JSON.stringify(eventData));
@@ -121,8 +120,8 @@ export const useChatRooms = () => {
       };
       startLoading();
       try {
-        const users = await userClient.searchUsers(req);
-        const usersWithoutOwner = users.filter((user) => user.userId !== firebaseUser?.uid);
+        const users = await userRepository.search(req);
+        const usersWithoutOwner = users.filter((user) => user.id !== firebaseUser?.uid);
         setSearchedUsers(usersWithoutOwner);
         resetError();
       } catch (err) {
@@ -144,7 +143,7 @@ export const useChatRooms = () => {
 
   const removeUserFromList = useCallback(
     (userId: string) => {
-      const updatedUserIds = usersToBeAdded.filter((user) => user.userId !== userId);
+      const updatedUserIds = usersToBeAdded.filter((user) => user.id !== userId);
       setUsersToBeAdded(updatedUserIds);
     },
     [setUsersToBeAdded, usersToBeAdded],
@@ -152,20 +151,20 @@ export const useChatRooms = () => {
 
   const addUsersToRoom = useCallback(
     async (room: Room) => {
-      const userIds = usersToBeAdded.map((user) => user.userId);
+      const userIds = usersToBeAdded.map((user) => user.id);
       const req = {
-        roomId: room.roomId,
+        roomId: room.id,
         userIds: userIds,
       };
       try {
         startLoading();
-        await roomUserClient.addUsers(req);
+        await roomRepository.addUsers(req);
         for (const userId of userIds) {
           const eventData: RoomUserEvent = {
             type: EVENT_TYPES.USER_JOINED,
             data: {
               userId,
-              roomId: room.roomId,
+              roomId: room.id,
             },
           };
           wsInstance?.send(JSON.stringify(eventData));
@@ -191,7 +190,7 @@ export const useChatRooms = () => {
   );
 
   const { data: rooms, refetch } = useFetch(
-    () => roomClient.fetchAllByUserID(firebaseUser?.uid ?? ''),
+    () => roomRepository.fetchAllByUserId({ userId: firebaseUser?.uid ?? '' }),
     {
       enabled: !!firebaseUser,
     },

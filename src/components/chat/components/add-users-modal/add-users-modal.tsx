@@ -2,7 +2,7 @@ import { FC, use } from 'react';
 
 import { Modal } from '@/components/ui';
 import { Button } from '@/components/ui';
-import { User } from '@/infra/user/entity/user';
+import { User } from '@/domain/models/user';
 
 type AddUsersModalProps = {
   users: User[];
@@ -40,9 +40,9 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
         <ul className='overflow-y-auto h-64 border border-gray-700 p-2 mb-4'>
           {users.map((user, index) => (
             <li key={index} className='flex justify-between items-center mb-2'>
-              <span>{user.userName}</span>
+              <span>{user.name}</span>
               {usersToBeAdded.includes(user) ? (
-                <Button color='dangerous' onClick={() => removeUserFromList(user.userId)}>
+                <Button color='dangerous' onClick={() => removeUserFromList(user.id)}>
                   Remove
                 </Button>
               ) : (

@@ -1,26 +1,32 @@
+import { RoomTypeEnum } from '@/lib/enum/room-type';
+
+// Entity
 export type Room = {
   roomId: string;
   name: string;
   roomType: RoomTypeEnum;
 };
 
-export const roomType = {
-  public: 'public',
-  private: 'private',
-};
-
-export type RoomTypeEnum = keyof typeof roomType;
-
-export type FetchAllByUserIDResponse = {
-  result: Room[];
-};
-
+// Requests
 export type CreateRoomRequest = {
   name: string;
   roomType: RoomTypeEnum;
   ownerId: string;
 };
 
+export type AddUsersRequest = {
+  userIds: string[];
+};
+
+// Repsonses
 export type CreateRoomResponse = {
   result: Room;
+};
+
+export type FetchAllByUserIDResponse = {
+  result: Room[];
+};
+
+export type AddUsersResponse = {
+  result: string;
 };
