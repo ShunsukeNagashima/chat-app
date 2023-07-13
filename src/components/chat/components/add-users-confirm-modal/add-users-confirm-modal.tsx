@@ -24,15 +24,15 @@ export const AddUsersConfirmModal: FC<AddUsersConfirmModalProps> = (props) => {
     <Modal title='Confirmation' handleClose={handleClose} closeOnOverlayClick={false}>
       <p className='mb-2'>{`These users will be added to ${room.name}`}</p>
       <div>
-        <ul className='overflow-y-auto h-64 border border-gray-700 p-2 mb-4'>
+        <ul className='mb-4 h-64 overflow-y-auto border border-gray-700 p-2'>
           {usersToBeAdded.map((user, index) => (
-            <li key={index} className='flex justify-between items-center mb-2'>
+            <li key={index} className='mb-2 flex items-center justify-between'>
               <span>{user.name}</span>
             </li>
           ))}
         </ul>
 
-        <div className='action-btns flex justify-end space-x-4'>
+        <div className='flex justify-end space-x-4'>
           <Button color='primary' disabled={!usersToBeAdded.length} onClick={() => addUsers(room)}>
             Add Users
           </Button>

@@ -28,7 +28,7 @@ export const Button: FC<ButtonProps> = (props) => {
   return (
     <button
       {...buttonProps}
-      className={`min-w-[100px] w-auto flex justify-center items-center rounded-md border border-transparent shadow-sm font-medium text-white sm:mt-0 sm:w-auto sm:text-sm ${className.button} `}
+      className={`flex w-auto min-w-[100px] items-center justify-center rounded-md border border-transparent font-medium text-white shadow-sm sm:mt-0 sm:w-auto sm:text-sm ${className.button} `}
       disabled={disabled}
       aria-disabled={disabled}
     >
@@ -37,7 +37,7 @@ export const Button: FC<ButtonProps> = (props) => {
         children
       ) : (
         <div
-          className={`animate-spin border-4 border-white rounded-full border-t-transparent ${className.spinner}`}
+          className={`animate-spin rounded-full border-4 border-white border-t-transparent ${className.spinner}`}
         />
       )}
     </button>

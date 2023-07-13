@@ -57,7 +57,7 @@ export const Chat: FC = () => {
         chatRooms={rooms}
         openCreateRoomModal={handleNextStep}
       />
-      <main className='flex flex-1 flex-col h-screen justify-between'>
+      <main className='flex h-screen flex-1 flex-col justify-between'>
         <MessageList
           messages={messages}
           selectedRoomId={selectedRoomId}

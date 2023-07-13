@@ -14,20 +14,20 @@ export const MessageForm: FC<MessageFormProps> = (props) => {
   return (
     <form
       onSubmit={sendMessage}
-      className={`px-6 py-3 bg-gray-800 border-t border-gray-700 ${className}`}
+      className={`border-t border-gray-700 bg-gray-800 px-6 py-3 ${className}`}
     >
       <div className='flex items-center'>
         <input
           type='text'
           value={messageContent}
           onChange={handleChange}
-          className='w-full px-4 py-2 mr-4 text-gray-200 bg-gray-700 border border-gray-700 rounded disabled:cursor-not-allowed'
+          className='mr-4 w-full rounded border border-gray-700 bg-gray-700 px-4 py-2 text-gray-200 disabled:cursor-not-allowed'
           placeholder='Write your message...'
           disabled={!selectedRoomId}
         />
         <button
           type='submit'
-          className='px-3 py-2 text-white bg-indigo-600 rounded hover:bg-blue-400 disabled:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed'
+          className='rounded bg-indigo-600 px-3 py-2 text-white hover:bg-blue-400 disabled:cursor-not-allowed disabled:bg-blue-500 disabled:opacity-50'
           disabled={!selectedRoomId || !messageContent}
         >
           Send
