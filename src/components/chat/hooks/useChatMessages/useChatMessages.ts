@@ -17,6 +17,7 @@ export const useChatMessages = () => {
   const { resetError, handleError } = useErrorHandler();
   const { user } = useAuth();
   const socketRef = useRef<WebSocket>();
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   const sendMessage = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -142,5 +143,9 @@ export const useChatMessages = () => {
     };
   }, [selectedRoomId, setMessages, addMessage, handleError, resetError, checkIsTimestampValid]);
 
-  return { messageContent, messages, sendMessage, handleChange };
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  return { messageContent, messages, bottomRef, sendMessage, handleChange };
 };

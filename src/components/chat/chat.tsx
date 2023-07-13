@@ -43,7 +43,7 @@ export const Chat: FC = () => {
     removeUserFromList,
     addUsersToRoom,
   } = useChatRooms();
-  const { sendMessage, handleChange, messages, messageContent } = useChatMessages();
+  const { messages, messageContent, bottomRef, sendMessage, handleChange } = useChatMessages();
 
   return (
     <div className='flex h-screen bg-gray-800'>
@@ -57,7 +57,7 @@ export const Chat: FC = () => {
         openCreateRoomModal={handleNextStep}
       />
       <main className='flex flex-1 flex-col h-screen justify-between'>
-        <MessageList messages={messages} selectedRoomId={selectedRoomId} />
+        <MessageList messages={messages} selectedRoomId={selectedRoomId} bottomRef={bottomRef} />
         <MessageForm
           sendMessage={sendMessage}
           handleChange={handleChange}

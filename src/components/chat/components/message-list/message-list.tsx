@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, RefObject } from 'react';
 
 import { MessageItem } from './components/message-item';
 
@@ -7,11 +7,12 @@ import { Message } from '@/domain/models/message';
 type MessageListProps = {
   messages: Message[];
   selectedRoomId: string;
+  bottomRef: RefObject<HTMLDivElement>;
   className?: string;
 };
 
 export const MessageList: FC<MessageListProps> = (props) => {
-  const { messages, selectedRoomId, className } = props;
+  const { messages, selectedRoomId, bottomRef, className } = props;
 
   if (!selectedRoomId) {
     return (
@@ -27,6 +28,7 @@ export const MessageList: FC<MessageListProps> = (props) => {
       {messages.map((message, i) => (
         <MessageItem key={i} message={message} />
       ))}
+      <div ref={bottomRef} />
     </div>
   );
 };
