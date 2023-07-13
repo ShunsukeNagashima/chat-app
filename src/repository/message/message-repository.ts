@@ -39,9 +39,9 @@ export class MessageRepositoryImpl implements MessageRepository {
   async fetchAllByRoomId(
     payload: FetchAllByRoomIdPayload,
   ): Promise<{ messages: Message[]; nextKey: string }> {
-    const { roomId } = payload;
+    const { roomId, nextKey } = payload;
 
-    const res = await this.messageClient.fetchAllByRoomId(roomId);
+    const res = await this.messageClient.fetchAllByRoomId(roomId, nextKey);
 
     const messages = res.messages.map((message) => {
       return MessageClass.create({
@@ -52,7 +52,7 @@ export class MessageRepositoryImpl implements MessageRepository {
       });
     });
 
-    return { messages: messages.reverse(), nextKey: res.nextKey };
+    return { messages: messages, nextKey: res.nextKey };
   }
 
   async update(payload: UpdateMessagePayload): Promise<void> {

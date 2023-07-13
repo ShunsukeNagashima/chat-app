@@ -12,9 +12,12 @@ import { kyInstance } from '@/lib/ky';
 export class MessageClient {
   constructor(private readonly ky: KyInstance) {}
 
-  async fetchAllByRoomId(roomId: string): Promise<{ messages: Message[]; nextKey: string }> {
+  async fetchAllByRoomId(
+    roomId: string,
+    nextKey: string,
+  ): Promise<{ messages: Message[]; nextKey: string }> {
     const response = await this.ky
-      .get(`api/rooms/${roomId}/messages`)
+      .get(`api/rooms/${roomId}/messages?lastEvaluatedKey=${nextKey ?? ''}`)
       .json<FetchAllByRoomIdResponse>();
     return { messages: response.result, nextKey: response.nextKey };
   }

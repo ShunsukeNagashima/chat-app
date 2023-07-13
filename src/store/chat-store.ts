@@ -20,7 +20,7 @@ export const useChatStore = create<ChatStore>((set) => ({
   username: '',
   selectedRoomId: '',
   setMessages: (messages) => set({ messages }),
-  addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
+  addMessage: (message) => set((state) => ({ messages: [message, ...state.messages] })),
   setUsername: (username) => set({ username }),
   clearMessages: () => set({ messages: [] }),
   setSelectedRoomId: (roomId) => set({ selectedRoomId: roomId }),

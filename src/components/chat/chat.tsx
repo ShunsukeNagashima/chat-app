@@ -21,7 +21,7 @@ import { useChatStore } from '@/store/chat-store';
 export const Chat: FC = () => {
   const { selectedRoomId } = useChatStore();
   const [isOpenDropdown, { toggle: toggleDropdown }] = useBoolean(false);
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const {
     rooms,
     formState,
@@ -43,7 +43,8 @@ export const Chat: FC = () => {
     removeUserFromList,
     addUsersToRoom,
   } = useChatRooms();
-  const { messages, messageContent, bottomRef, sendMessage, handleChange } = useChatMessages();
+  const { messages, messageContent, nextKey, sendMessage, handleChange, fetchMoreMessages } =
+    useChatMessages();
 
   return (
     <div className='flex h-screen bg-gray-800'>
@@ -57,7 +58,12 @@ export const Chat: FC = () => {
         openCreateRoomModal={handleNextStep}
       />
       <main className='flex flex-1 flex-col h-screen justify-between'>
-        <MessageList messages={messages} selectedRoomId={selectedRoomId} bottomRef={bottomRef} />
+        <MessageList
+          messages={messages}
+          selectedRoomId={selectedRoomId}
+          nextKey={nextKey}
+          fetchMoreMessages={fetchMoreMessages}
+        />
         <MessageForm
           sendMessage={sendMessage}
           handleChange={handleChange}

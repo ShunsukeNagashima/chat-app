@@ -6,6 +6,7 @@ export type CreateMessagePayload = {
 
 export type FetchAllByRoomIdPayload = {
   roomId: string;
+  nextKey: string;
 };
 
 export type UpdateMessagePayload = {
