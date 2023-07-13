@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --dir src --fix",
+    "lint": "eslint ./src --fix",
     "format": "prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json}'",
     "prepare": "husky install"
   },
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-tailwindcss": "^3.13.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8"

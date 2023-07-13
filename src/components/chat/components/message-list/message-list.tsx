@@ -20,7 +20,7 @@ export const MessageList: FC<MessageListProps> = (props) => {
 
   if (!selectedRoomId) {
     return (
-      <div className='flex items-center justify-center h-full text-center text-gray-400 text-lg'>
+      <div className='flex h-full items-center justify-center text-center text-lg text-gray-400'>
         No chat room is selected. <br />
         Please select one from the sidebar or create a new chat room.
       </div>
@@ -29,7 +29,7 @@ export const MessageList: FC<MessageListProps> = (props) => {
 
   return (
     <div
-      className={`px-6 py-4 flex-1 overflow-y-auto flex flex-col-reverse ${className}`}
+      className={`flex flex-1 flex-col-reverse overflow-y-auto px-6 py-4 ${className}`}
       id='scrollableDiv'
     >
       <InfineteScroll

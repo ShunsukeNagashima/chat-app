@@ -28,18 +28,18 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
   return (
     <Modal title='Add Users to Room' handleClose={handleClose} closeOnOverlayClick={false}>
       <div>
-        <div className='search-box mb-4'>
+        <div className='mb-4'>
           <input
             type='text'
             placeholder='Search users...'
-            className='w-full px-3 py-2 border rounded shadow-sm text-gray-200 bg-gray-700 border border-gray-700'
+            className='w-full rounded border border-gray-700 bg-gray-700 px-3 py-2 text-gray-200 shadow-sm'
             onChange={searchUsers}
           />
         </div>
 
-        <ul className='overflow-y-auto h-64 border border-gray-700 p-2 mb-4'>
+        <ul className='mb-4 h-64 overflow-y-auto border border-gray-700 p-2'>
           {users.map((user, index) => (
-            <li key={index} className='flex justify-between items-center mb-2'>
+            <li key={index} className='mb-2 flex items-center justify-between'>
               <span>{user.name}</span>
               {usersToBeAdded.includes(user) ? (
                 <Button color='dangerous' onClick={() => removeUserFromList(user.id)}>
@@ -54,7 +54,7 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
           ))}
         </ul>
 
-        <div className='action-btns flex justify-end space-x-4'>
+        <div className='flex justify-end space-x-4'>
           <Button color='primary' disabled={!usersToBeAdded.length} onClick={handleNextStep}>
             Confirm
           </Button>
