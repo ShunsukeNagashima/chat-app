@@ -108,7 +108,6 @@ export const useChatMessages = () => {
 
   const fetchMoreMessages = useCallback(async () => {
     try {
-      await fetchMessagesAndUserNames();
       const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames(nextKey);
 
       const updatedMessages = [...messages, ...messagesWithUserName];
