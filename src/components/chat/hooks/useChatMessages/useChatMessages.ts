@@ -174,5 +174,5 @@ export const useChatMessages = () => {
     checkIsTimestampValid,
   ]);
 
-  return { messageContent, messages, nextKey, sendMessage, handleChange, fetchMoreMessages };
+  return { messageContent, nextKey, sendMessage, handleChange, fetchMoreMessages };
 };
