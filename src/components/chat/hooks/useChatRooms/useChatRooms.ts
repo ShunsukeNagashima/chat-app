@@ -10,7 +10,6 @@ import { User } from '@/domain/models/user';
 import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
-import { useFetch } from '@/hooks/useFetch';
 import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
 import { RoomUserEvent } from '@/lib/websocket-event';
 import { roomRepository } from '@/repository/room/room-repository';
@@ -33,6 +32,7 @@ export const useChatRooms = () => {
   const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
   const [usersToBeAdded, setUsersToBeAdded] = useState<User[]>([]);
   const [createdRoom, setCreatedRoom] = useState<Room>();
+  const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
   const { user: firebaseUser } = useAuth();
   const { hasError, resetError, handleError } = useErrorHandler();
@@ -189,12 +189,24 @@ export const useChatRooms = () => {
     ],
   );
 
-  const { data: rooms, refetch } = useFetch(
-    () => roomRepository.fetchAllByUserId({ userId: firebaseUser?.uid ?? '' }),
-    {
-      enabled: !!firebaseUser,
-    },
-  );
+  const fetchRooms = useCallback(async () => {
+    if (!firebaseUser) return;
+
+    try {
+      const rooms = await roomRepository.fetchAllByUserId({ userId: firebaseUser.uid });
+      resetError();
+      return rooms;
+    } catch (err) {
+      handleError(err);
+    }
+  }, [firebaseUser, handleError, resetError]);
+
+  useEffect(() => {
+    (async () => {
+      const rooms = await fetchRooms();
+      rooms && setFetchedRooms(rooms);
+    })();
+  }, [firebaseUser, handleError, resetError, fetchRooms]);
 
   useEffect(() => {
     if (!wsInstance) return;
@@ -202,17 +214,14 @@ export const useChatRooms = () => {
     wsInstance.onmessage = async (event) => {
       const eventData = JSON.parse(event.data) as RoomUserEvent;
       if (eventData.type === EVENT_TYPES.USER_JOINED) {
-        try {
-          await refetch();
-        } catch (err) {
-          handleError(err);
-        }
+        const rooms = await fetchRooms();
+        rooms && setFetchedRooms(rooms);
       }
     };
-  }, [wsInstance, rooms, refetch, handleError]);
+  }, [wsInstance, fetchRooms, handleError]);
 
   return {
-    rooms: rooms ?? [],
+    rooms: fetchedRooms,
     formState,
     currentStep,
     isActionFailed: hasError,
