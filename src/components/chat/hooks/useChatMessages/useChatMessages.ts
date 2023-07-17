@@ -108,7 +108,6 @@ export const useChatMessages = () => {
 
   const fetchMoreMessages = useCallback(async () => {
     try {
-      await fetchMessagesAndUserNames();
       const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames(nextKey);
 
       const updatedMessages = [...messages, ...messagesWithUserName];
@@ -174,5 +173,5 @@ export const useChatMessages = () => {
     checkIsTimestampValid,
   ]);
 
-  return { messageContent, messages, nextKey, sendMessage, handleChange, fetchMoreMessages };
+  return { messageContent, nextKey, sendMessage, handleChange, fetchMoreMessages };
 };
