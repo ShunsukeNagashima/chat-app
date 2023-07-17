@@ -47,6 +47,7 @@ export class MessageRepositoryImpl implements MessageRepository {
       return MessageClass.create({
         id: message.messageId,
         userId: message.userId,
+        roomId: message.roomId,
         content: message.content,
         createdAt: dayjs(message.createdAt),
       });
