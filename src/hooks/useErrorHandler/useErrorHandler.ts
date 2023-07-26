@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react';
 
+import { FirebaseError } from '@firebase/util';
 import { HTTPError } from 'ky';
+
+import { useToastMessageStore } from '@/store/toast-message-store';
 
 type ServerError = {
   error: string;
@@ -8,17 +11,35 @@ type ServerError = {
 
 export function useErrorHandler() {
   const [error, setError] = useState('');
+  const { setErrorToastMessage } = useToastMessageStore();
 
-  const handleError = useCallback(async (err: unknown) => {
-    if (err instanceof HTTPError) {
-      const serverError = (await err.response.json()) as ServerError;
-      setError(serverError.error);
-    } else if (err instanceof Error) {
-      setError(err.message);
-    } else {
-      setError('Unexpected error occurred');
-    }
-  }, []);
+  const handleError = useCallback(
+    async (err: unknown) => {
+      if (err instanceof HTTPError) {
+        const serverError = (await err.response.json()) as ServerError;
+        setError(serverError.error);
+      } else if (err instanceof FirebaseError) {
+        switch (err.code) {
+          case 'auth/email-already-in-use':
+            setError(err.message);
+            setErrorToastMessage('The email address is already in use by another account');
+            break;
+          default:
+            setError(err.message);
+            setErrorToastMessage(
+              'Failed to sign up for an unknown reason. Please try again later.',
+            );
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+        setErrorToastMessage(err.message);
+      } else {
+        setError('Unexpected error occurred');
+        setErrorToastMessage('Unexpected error occurred');
+      }
+    },
+    [setErrorToastMessage],
+  );
 
   const resetError = useCallback(() => {
     setError('');
