@@ -35,7 +35,7 @@ export const useChatRooms = () => {
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
   const { user: firebaseUser } = useAuth();
-  const { hasError, resetError, handleError } = useErrorHandler();
+  const { error, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { wsInstance } = useWebSocketStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
@@ -224,7 +224,7 @@ export const useChatRooms = () => {
     rooms: fetchedRooms,
     formState,
     currentStep,
-    isActionFailed: hasError,
+    isActionFailed: !!error,
     loading,
     searchedUsers,
     usersToBeAdded,

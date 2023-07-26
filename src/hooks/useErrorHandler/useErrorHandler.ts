@@ -7,24 +7,22 @@ type ServerError = {
 };
 
 export function useErrorHandler() {
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState('');
 
   const handleError = useCallback(async (err: unknown) => {
-    console.error(err);
-    setHasError(true);
     if (err instanceof HTTPError) {
       const serverError = (await err.response.json()) as ServerError;
-      console.error(serverError.error);
+      setError(serverError.error);
     } else if (err instanceof Error) {
-      console.error(err.message);
+      setError(err.message);
     } else {
-      console.error('Unexpected error occurred');
+      setError('Unexpected error occurred');
     }
   }, []);
 
   const resetError = useCallback(() => {
-    setHasError(false);
+    setError('');
   }, []);
 
-  return { hasError, handleError, resetError };
+  return { error, handleError, resetError };
 }

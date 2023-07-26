@@ -9,45 +9,39 @@ jest.mock('ky', () => ({
 }));
 
 describe('useErrorHandler', () => {
-  let originalConsoleError: typeof console.error;
-  beforeAll(() => {
-    originalConsoleError = console.error;
-    console.error = jest.fn();
-  });
-
   it('should be false by default', () => {
     const { result } = renderHook(() => useErrorHandler());
 
-    expect(result.current.hasError).toBe(false);
+    expect(result.current.error).toEqual('');
   });
 
   it('should set hasError to true', async () => {
     const { result } = renderHook(() => useErrorHandler());
 
+    const errMsg = 'Error Occured';
+
     act(() => {
-      result.current.handleError(new Error());
+      result.current.handleError(new Error(errMsg));
     });
 
-    expect(console.error).toHaveBeenCalled();
-
-    expect(result.current.hasError).toBe(true);
+    expect(result.current.error).toEqual(errMsg);
   });
 
   it('should resetError', async () => {
     const { result } = renderHook(() => useErrorHandler());
 
+    const errMsg = 'Error Occured';
+
     act(() => {
-      result.current.handleError(new Error());
+      result.current.handleError(new Error(errMsg));
     });
 
-    expect(console.error).toHaveBeenCalled();
-
-    expect(result.current.hasError).toBe(true);
+    expect(result.current.error).toEqual(errMsg);
 
     act(() => {
       result.current.resetError();
     });
 
-    expect(result.current.hasError).toBe(false);
+    expect(result.current.error).toEqual('');
   });
 });
