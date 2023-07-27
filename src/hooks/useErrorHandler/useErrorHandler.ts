@@ -19,15 +19,20 @@ export function useErrorHandler() {
         const serverError = (await err.response.json()) as ServerError;
         setError(serverError.error);
       } else if (err instanceof FirebaseError) {
+        console.log(err.code);
         switch (err.code) {
           case 'auth/email-already-in-use':
             setError(err.message);
             setErrorToastMessage('The email address is already in use by another account');
             break;
+          case 'auth/user-not-found' || 'auth/wrong-password':
+            setError(err.message);
+            setErrorToastMessage('Email or password is incorrect');
+            break;
           default:
             setError(err.message);
             setErrorToastMessage(
-              'Failed to sign up for an unknown reason. Please try again later.',
+              'Failed to authenticate for an unknown reason. Please try again later.',
             );
         }
       } else if (err instanceof Error) {
