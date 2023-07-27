@@ -10,7 +10,7 @@ export const useToast = () => {
 
     const timer = setTimeout(() => {
       removeToastMessage();
-    }, 7000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [removeToastMessage, toastMessage]);
