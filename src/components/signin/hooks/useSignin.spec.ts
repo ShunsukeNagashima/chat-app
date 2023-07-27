@@ -1,29 +1,24 @@
-import { renderHook, act, RenderHookResult } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 
 import { useSignin } from './useSignin';
 
 const mocks = {
   setUser: jest.fn(),
-  signInWithEmailAndPassword: jest.fn(),
-  routerPush: jest.fn(),
+  push: jest.fn(),
   resetError: jest.fn(),
+  signInWithEmailAndPassword: jest.fn(),
 };
 
 jest.mock('firebase/auth', () => ({
+  ...jest.requireActual('firebase/auth'),
   getAuth: jest.fn(),
-  signInWithEmailAndPassword: () => mocks.signInWithEmailAndPassword,
+  signInWithEmailAndPassword: () => mocks.signInWithEmailAndPassword(),
 }));
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: mocks.routerPush,
+    push: mocks.push,
   }),
-}));
-
-jest.mock('@/repository/user/user-repository', () => ({
-  userRepository: {
-    create: jest.fn(),
-  },
 }));
 
 jest.mock('@/store/auth-store', () => ({
@@ -39,8 +34,8 @@ jest.mock('@/hooks/useErrorHandler/useErrorHandler', () => ({
 }));
 
 describe('useSignin', () => {
-  it('should register user', async () => {
-    const mockUser = {
+  it('should signin', async () => {
+    const mockResult = {
       user: {
         uid: 'test-uid',
         displayName: 'test-name',
@@ -49,15 +44,16 @@ describe('useSignin', () => {
       },
     };
     const { result } = renderHook(() => useSignin());
-    mocks.signInWithEmailAndPassword.mockResolvedValue(mockUser);
+    mocks.signInWithEmailAndPassword.mockResolvedValue(mockResult);
 
     await act(async () => {
       await result.current.handleSignin({ email: 'test@test.com', password: 'test-password' });
     });
 
+    expect(mocks.signInWithEmailAndPassword).toHaveBeenCalled();
     expect(mocks.resetError).toHaveBeenCalled();
-    expect(mocks.setUser).toHaveBeenCalled();
-    expect(mocks.routerPush).toHaveBeenCalledWith('/');
+    expect(mocks.setUser).toHaveBeenCalledWith(mockResult.user);
+    expect(mocks.push).toHaveBeenCalledWith('/');
     expect(result.current.isLoading).toBe(false);
   });
 });
