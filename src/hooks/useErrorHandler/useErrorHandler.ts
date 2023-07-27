@@ -19,7 +19,6 @@ export function useErrorHandler() {
         const serverError = (await err.response.json()) as ServerError;
         setError(serverError.error);
       } else if (err instanceof FirebaseError) {
-        console.log(err.code);
         switch (err.code) {
           case 'auth/email-already-in-use':
             setError(err.message);
