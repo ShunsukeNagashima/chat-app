@@ -10,6 +10,7 @@ import { SigninFormInput, SigninSchema } from './type';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { firebaseApp } from '@/lib/firebase-client';
+import { userRepository } from '@/repository/user/user-repository';
 import { useAuthStore } from '@/store/auth-store';
 import { useToastMessageStore } from '@/store/toast-message-store';
 
@@ -35,7 +36,8 @@ export const useSignin = () => {
         startLoading();
         const { email, password } = data;
         const result = await signInWithEmailAndPassword(auth, email, password);
-        setUser(result.user);
+        const user = await userRepository.fetchById({ userId: result.user.uid });
+        setUser(user);
         resetError();
         setSuccessToastMessage('Successfully signed in!');
         router.push('/');
