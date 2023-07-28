@@ -4,8 +4,8 @@ import dayjs from 'dayjs';
 import { useChatMessages } from './useChatMessages';
 
 import { messageRepository } from '@/repository/message/message-repository';
+import { FetchAllByRoomIdPayload } from '@/repository/message/types';
 import { useAuthStore } from '@/store/auth-store';
-import { useChatStore } from '@/store/chat-store';
 
 const mocks = {
   messages: [],
@@ -28,7 +28,7 @@ const setupWebSocketMock = () => {
 
 jest.mock('@/repository/message/message-repository', () => ({
   messageRepository: {
-    fetchAllByRoomId: (arg: { roomId: string; nextKey: string }) => mocks.fetchAllByRoomId(arg),
+    fetchAllByRoomId: (payload: FetchAllByRoomIdPayload) => mocks.fetchAllByRoomId(payload),
     create: jest.fn(),
   },
 }));
