@@ -34,7 +34,7 @@ export const useChatRooms = () => {
   const [createdRoom, setCreatedRoom] = useState<Room>();
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
-  const { user } = useAuthStore();
+  const { user: authUser } = useAuthStore();
   const { error, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { wsInstance } = useWebSocketStore();
@@ -78,15 +78,15 @@ export const useChatRooms = () => {
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
     async (data) => {
-      if (!user) return;
+      if (!authUser) return;
       startLoading();
       try {
-        const room = await roomRepository.create({ ...data, ownerId: user.id });
+        const room = await roomRepository.create({ ...data, ownerId: authUser.id });
         setCreatedRoom(room);
         const eventData: RoomUserEvent = {
           type: EVENT_TYPES.USER_JOINED,
           data: {
-            userId: user.id,
+            userId: authUser.id,
             roomId: room.id,
           },
         };
@@ -99,7 +99,7 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [user, wsInstance, handleNextStep, startLoading, finishLoading, handleError, resetError],
+    [authUser, wsInstance, handleNextStep, startLoading, finishLoading, handleError, resetError],
   );
 
   const searchUsers = useCallback(
@@ -113,7 +113,7 @@ export const useChatRooms = () => {
       startLoading();
       try {
         const users = await userRepository.search(req);
-        const usersWithoutOwner = users.filter((user) => user.id !== user?.id);
+        const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
         setSearchedUsers(usersWithoutOwner);
         resetError();
       } catch (err) {
@@ -122,7 +122,7 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [startLoading, finishLoading, handleError, resetError],
+    [authUser, startLoading, finishLoading, handleError, resetError],
   );
 
   const addUserToList = useCallback(
@@ -182,23 +182,23 @@ export const useChatRooms = () => {
   );
 
   const fetchRooms = useCallback(async () => {
-    if (!user) return;
+    if (!authUser) return;
 
     try {
-      const rooms = await roomRepository.fetchAllByUserId({ userId: user.id });
+      const rooms = await roomRepository.fetchAllByUserId({ userId: authUser.id });
       resetError();
       return rooms;
     } catch (err) {
       handleError(err);
     }
-  }, [user, handleError, resetError]);
+  }, [authUser, handleError, resetError]);
 
   useEffect(() => {
     (async () => {
       const rooms = await fetchRooms();
       rooms && setFetchedRooms(rooms);
     })();
-  }, [user, handleError, resetError, fetchRooms]);
+  }, [authUser, handleError, resetError, fetchRooms]);
 
   useEffect(() => {
     if (!wsInstance) return;
