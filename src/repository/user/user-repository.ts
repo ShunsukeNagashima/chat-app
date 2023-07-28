@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import {
   CreateUserPayload,
   FetchByIdPayload,
@@ -25,6 +27,8 @@ export class UserRepositoryImpl implements UserRepository {
       id: user.userId,
       name: user.userName,
       email: user.email,
+      profileImageUrl: user.imageUrl,
+      createdAt: dayjs(user.createdAt),
     });
   }
 
@@ -34,6 +38,8 @@ export class UserRepositoryImpl implements UserRepository {
       id: user.userId,
       name: user.userName,
       email: user.email,
+      profileImageUrl: user.imageUrl,
+      createdAt: dayjs(user.createdAt),
     });
   }
 
@@ -45,6 +51,8 @@ export class UserRepositoryImpl implements UserRepository {
         id: user.userId,
         name: user.userName,
         email: user.email,
+        profileImageUrl: user.imageUrl,
+        createdAt: dayjs(user.createdAt),
       });
     });
   }
@@ -57,6 +65,8 @@ export class UserRepositoryImpl implements UserRepository {
         id: user.userId,
         name: user.userName,
         email: user.email,
+        profileImageUrl: user.imageUrl,
+        createdAt: dayjs(user.createdAt),
       });
     });
   }
