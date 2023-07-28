@@ -2,10 +2,19 @@ import Link from 'next/link';
 
 import { Button } from '../ui';
 
+import { SUPPORTED_FILE_TYPES } from './hooks/type';
 import { useSignup } from './hooks/useSignup';
 
 export const Signup = () => {
-  const { errors, isLoading, handleSubmit, handleSignup, register } = useSignup();
+  const {
+    errors,
+    isLoading,
+    imagePreviewUrl,
+    handleSubmit,
+    handleSignup,
+    register,
+    handleImageChange,
+  } = useSignup();
 
   return (
     <div className='flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8'>
@@ -23,7 +32,7 @@ export const Signup = () => {
               </label>
               <input
                 id='userName'
-                {...register('userName', { required: 'Username is required' })}
+                {...register('userName')}
                 type='text'
                 className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500'
                 placeholder='Username'
@@ -32,12 +41,48 @@ export const Signup = () => {
             </div>
 
             <div>
+              <div className='relative'>
+                <label htmlFor='profileImage' className='block text-sm font-medium text-gray-700'>
+                  Profile Image <span className='text-red-500'>*</span>
+                </label>
+                <div
+                  className='mt-1 flex h-40 w-40 cursor-pointer items-center justify-center rounded-md border border-gray-300'
+                  onClick={() => document.getElementById('profileImageInput')?.click()}
+                >
+                  {imagePreviewUrl ? (
+                    <img
+                      src={imagePreviewUrl}
+                      alt='Profile Preview'
+                      className='h-full w-full rounded-md object-cover'
+                    />
+                  ) : (
+                    <span className='text-center text-gray-500'>Click to upload an image</span>
+                  )}
+                </div>
+                <input
+                  id='profileImageInput'
+                  type='file'
+                  className='hidden'
+                  {...register('profileImage')}
+                  onChange={(e) => {
+                    handleImageChange(e);
+                    register('profileImage').onChange(e);
+                  }}
+                  accept={SUPPORTED_FILE_TYPES.join(',')}
+                />
+              </div>
+              {errors.profileImage && (
+                <p className='mt-1 text-red-500'>{errors.profileImage.message}</p>
+              )}
+            </div>
+
+            <div>
               <label htmlFor='email' className='block text-sm font-medium text-gray-700'>
                 Email address <span className='text-red-500'>*</span>
               </label>
               <input
                 id='email'
-                {...register('email', { required: 'Email is required' })}
+                {...register('email')}
                 type='email'
                 className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500'
                 placeholder='Email address'
@@ -51,7 +96,7 @@ export const Signup = () => {
               </label>
               <input
                 id='password'
-                {...register('password', { required: 'Password is required' })}
+                {...register('password')}
                 type='password'
                 className='mt-1 block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder:text-gray-500 focus:border-indigo-500 focus:ring-indigo-500'
                 placeholder='Password'

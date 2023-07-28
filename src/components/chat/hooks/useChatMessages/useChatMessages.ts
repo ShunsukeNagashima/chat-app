@@ -3,20 +3,22 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 
 import { MessageClass } from '@/domain/models/message';
-import { useAuth } from '@/hooks/useAuth';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { EVENT_TYPES } from '@/lib/enum';
 import { MessageEvent } from '@/lib/websocket-event';
 import { messageRepository } from '@/repository/message/message-repository';
 import { userRepository } from '@/repository/user/user-repository';
+import { useAuthStore } from '@/store/auth-store';
 import { useChatStore } from '@/store/chat-store';
+
+type UserMap = Record<string, Record<string, string>>;
 
 export const useChatMessages = () => {
   const { messages, selectedRoomId, addMessage, setMessages } = useChatStore();
   const [messageContent, setMessageContent] = useState('');
   const [nextKey, setNextKey] = useState('');
   const { resetError, handleError } = useErrorHandler();
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const socketRef = useRef<WebSocket>();
 
   const sendMessage = useCallback(
@@ -26,7 +28,7 @@ export const useChatMessages = () => {
       try {
         const message = await messageRepository.create({
           roomId: selectedRoomId,
-          userId: user.uid,
+          userId: user.id,
           content: messageContent,
         });
         resetError();
@@ -60,16 +62,16 @@ export const useChatMessages = () => {
           nextKey: nextKey ?? '',
         });
 
-      let userNameMap: Record<string, string> = {};
+      let userMap: UserMap = {};
       let storedTimestamp = 0;
 
       const storagedData = localStorage.getItem(selectedRoomId);
       if (storagedData !== null) {
         const userData = JSON.parse(storagedData) as {
-          userNameMap: Record<string, string>;
+          userMap: UserMap;
           timestamp: number;
         };
-        userNameMap = userData.userNameMap;
+        userMap = userData.userMap;
         storedTimestamp = userData.timestamp;
       }
 
@@ -78,26 +80,27 @@ export const useChatMessages = () => {
 
       const milliSecInHalfDay = 1000 * 60 * 60 * 12;
       if (!checkIsTimestampValid(storedTimestamp, milliSecInHalfDay)) {
-        userNameMap = {};
+        userMap = {};
       }
 
-      const missingUserIds = idsWithNoDupulicates.filter((id) => !(id in userNameMap));
+      const missingUserIds = idsWithNoDupulicates.filter((id) => !(id in userMap));
       if (missingUserIds.length) {
         const users = await userRepository.batchGet({ userIds: missingUserIds });
-        const newUserNameMap = users.reduce<Record<string, string>>((acc, user) => {
-          acc[user.id] = user.name;
+        const newUserMap = users.reduce<UserMap>((acc, user) => {
+          acc[user.id] = { name: user.name, imageUrl: user.profileImageUrl };
           return acc;
         }, {});
 
-        userNameMap = { ...userNameMap, ...newUserNameMap };
-        const data = { userNameMap, timestamp: Date.now() };
+        userMap = { ...userMap, ...newUserMap };
+        const data = { userMap, timestamp: Date.now() };
 
         localStorage.setItem(selectedRoomId, JSON.stringify(data));
       }
 
       const messagesWithUserName = fetchedMessages.map((message) => {
         return MessageClass.clone(message, {
-          userName: userNameMap[message.userId],
+          userName: userMap[message.userId].name,
+          userImageUrl: userMap[message.userId].imageUrl,
         });
       });
 

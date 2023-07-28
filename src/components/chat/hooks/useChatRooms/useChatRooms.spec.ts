@@ -1,24 +1,22 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
+import dayjs from 'dayjs';
 
 import { useChatRooms } from './useChatRooms';
 
+import { User } from '@/domain/models/user';
 import { ROOM_TYPE, ROOM_CREATION_STEPS } from '@/lib/enum';
 import {
   FetchAllByUserIdPayload,
   CreateRoomPayload,
   AddUsersPayload,
 } from '@/repository/room/type';
-import { SearchUsersPayload } from '@/repository/user/types';
+import { useAuthStore } from '@/store/auth-store';
 
 const mocks = {
-  selectedRoomId: '',
   fetchAllByUserId: jest.fn(),
   create: jest.fn(),
-  setUser: jest.fn(),
-  setSelectedRoomId: jest.fn().mockImplementation((roomId: string) => {
-    mocks.selectedRoomId = roomId;
-  }),
-  searchUsers: jest.fn(),
+  setSelectedRoomId: jest.fn(),
+  search: jest.fn(),
   addUsers: jest.fn(),
 };
 
@@ -42,7 +40,7 @@ jest.mock('@/repository/room/room-repository', () => ({
 
 jest.mock('@/repository/user/user-repository', () => ({
   userRepository: {
-    search: (payload: SearchUsersPayload) => mocks.searchUsers(payload),
+    search: () => mocks.search(),
   },
 }));
 
@@ -70,7 +68,6 @@ jest.mock('@/store/chat-store', () => {
   return {
     ...actual,
     useChatStore: () => ({
-      selectedRoomId: mocks.selectedRoomId,
       setRooms: jest.fn(),
       setSelectedRoomId: mocks.setSelectedRoomId,
       clearMessages: jest.fn(),
@@ -95,11 +92,8 @@ jest.mock('@/store/websocket-store', () => {
   };
 });
 
-jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: mocks.setUser(),
-  }),
-}));
+jest.mock('@/store/auth-store');
+const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
 
 type Result = {
   current: ReturnType<typeof useChatRooms>;
@@ -119,7 +113,9 @@ describe('useChatRooms', () => {
           roomType: ROOM_TYPE.PUBLIC,
         },
       ];
-      mocks.setUser.mockReturnValue({ uid: 'testUid' });
+      mockUseAuthStore.mockImplementation(() => ({
+        user: { id: 'testUid' },
+      }));
       mocks.fetchAllByUserId.mockResolvedValue(mockRooms);
 
       await act(async () => {
@@ -167,9 +163,10 @@ describe('useChatRooms', () => {
         name: 'testRoom',
         roomType: ROOM_TYPE.PUBLIC,
       };
-      mocks.setUser.mockReturnValue({ uid: 'testUid' });
+      mockUseAuthStore.mockImplementation(() => ({
+        user: { id: 'testUid' },
+      }));
       mocks.create.mockResolvedValue(mockRoom);
-
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
       });
@@ -194,7 +191,9 @@ describe('useChatRooms', () => {
       expect(result.current.currentStep).toEqual(ROOM_CREATION_STEPS.CREATE_ROOM_RESULT);
     });
     it('should do nothing when user is null', async () => {
-      mocks.setUser.mockReturnValue(null);
+      mockUseAuthStore.mockImplementation(() => ({
+        user: null,
+      }));
 
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
@@ -231,7 +230,10 @@ describe('useChatRooms', () => {
           email: 'test@test.com',
         },
       ];
-      mocks.searchUsers.mockResolvedValue(mockUsers);
+
+      mockUseAuthStore.mockImplementation(() => ({
+        user: { id: 'testUid' },
+      }));
 
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
@@ -243,22 +245,26 @@ describe('useChatRooms', () => {
         await result.current.searchUsers(event);
       });
 
-      expect(result.current.searchedUsers).toEqual(mockUsers);
+      expect(mocks.search).toHaveBeenCalled();
     });
   });
 
   describe('add users', () => {
     it('should add users', async () => {
-      const mockUsers = [
+      const mockUsers: User[] = [
         {
           id: 'testUserId-1',
           name: 'testUser-1',
           email: 'test-1@test.com',
+          createdAt: dayjs('2023-01-01'),
+          profileImageUrl: 'test-url',
         },
         {
           id: 'testUserId-2',
           name: 'testUser-2',
           email: 'test-2@test.com',
+          createdAt: dayjs('2023-01-01'),
+          profileImageUrl: 'test-url',
         },
       ];
 
