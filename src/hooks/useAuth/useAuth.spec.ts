@@ -1,4 +1,5 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
+import dayjs from 'dayjs';
 
 import { useAuth } from './useAuth';
 
@@ -10,6 +11,7 @@ const mocks = {
   user: jest.fn(),
   setUser: jest.fn(),
   push: jest.fn(),
+  fetchById: jest.fn(),
 };
 
 jest.mock('next/navigation', () => ({
@@ -47,6 +49,12 @@ jest.mock('firebase/auth', () => {
     },
   };
 });
+
+jest.mock('@/repository/user/user-repository', () => ({
+  userRepository: {
+    fetchById: () => mocks.fetchById(),
+  },
+}));
 
 describe('useAuth', () => {
   beforeEach(() => {
@@ -103,14 +111,26 @@ describe('useAuth', () => {
     });
 
     it('should connect websocket when user is not null', async () => {
-      const { result } = renderHook(() => useAuth());
-
+      renderHook(() => useAuth());
       const authUser = { uid: 'testUid' };
+
+      const mockUser = {
+        id: 'test-id',
+        name: 'test-name',
+        email: 'test@test.com',
+        profileImageUrl: 'test-profile-image-url',
+        createdAt: dayjs('2023-01-01'),
+      };
+
+      mocks.fetchById.mockResolvedValue(mockUser);
 
       act(() => {
         firebaseAuth.triggerAuthChange(authUser);
       });
 
+      await waitFor(() => {
+        expect(mocks.fetchById).toHaveBeenCalled();
+      });
       expect(mocks.setUser).toHaveBeenCalled();
       expect(mocks.connect).toHaveBeenCalled();
     });

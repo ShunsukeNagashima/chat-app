@@ -1,5 +1,6 @@
-import { User } from 'firebase/auth';
 import { create } from 'zustand';
+
+import { User } from '@/domain/models/user';
 
 export type AuthStore = {
   user: User | null;

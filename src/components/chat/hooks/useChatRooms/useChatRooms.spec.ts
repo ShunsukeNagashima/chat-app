@@ -1,35 +1,27 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
+import dayjs from 'dayjs';
 
 import { useChatRooms } from './useChatRooms';
 
-import { ROOM_TYPE, ROOM_CREATION_STEPS } from '@/lib/enum';
+import { User } from '@/domain/models/user';
+import { ROOM_TYPE, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
+import { RoomUserEvent } from '@/lib/websocket-event';
 import {
   FetchAllByUserIdPayload,
   CreateRoomPayload,
   AddUsersPayload,
 } from '@/repository/room/type';
 import { SearchUsersPayload } from '@/repository/user/types';
+import { useAuthStore } from '@/store/auth-store';
+import { useWebSocketStore } from '@/store/websocket-store';
 
 const mocks = {
-  selectedRoomId: '',
   fetchAllByUserId: jest.fn(),
   create: jest.fn(),
-  setUser: jest.fn(),
-  setSelectedRoomId: jest.fn().mockImplementation((roomId: string) => {
-    mocks.selectedRoomId = roomId;
-  }),
-  searchUsers: jest.fn(),
+  setSelectedRoomId: jest.fn(),
+  search: jest.fn(),
   addUsers: jest.fn(),
-};
-
-const setupWebSocketMock = () => {
-  const mockWebSocket = {
-    send: jest.fn(),
-    close: jest.fn(),
-    onmessage: jest.fn(),
-  };
-  (global as any).WebSocket = jest.fn().mockImplementation(() => mockWebSocket);
-  return mockWebSocket;
+  send: jest.fn(),
 };
 
 jest.mock('@/repository/room/room-repository', () => ({
@@ -42,7 +34,7 @@ jest.mock('@/repository/room/room-repository', () => ({
 
 jest.mock('@/repository/user/user-repository', () => ({
   userRepository: {
-    search: (payload: SearchUsersPayload) => mocks.searchUsers(payload),
+    search: (payload: SearchUsersPayload) => mocks.search(payload),
   },
 }));
 
@@ -65,18 +57,14 @@ jest.mock('ky', () => ({
   HTTPError: jest.fn(),
 }));
 
-jest.mock('@/store/chat-store', () => {
-  const actual = jest.requireActual('@/store/chat-store');
-  return {
-    ...actual,
-    useChatStore: () => ({
-      selectedRoomId: mocks.selectedRoomId,
-      setRooms: jest.fn(),
-      setSelectedRoomId: mocks.setSelectedRoomId,
-      clearMessages: jest.fn(),
-    }),
-  };
-});
+jest.mock('@/store/chat-store', () => ({
+  ...jest.requireActual('@/store/chat-store'),
+  useChatStore: () => ({
+    setRooms: jest.fn(),
+    setSelectedRoomId: mocks.setSelectedRoomId,
+    clearMessages: jest.fn(),
+  }),
+}));
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -84,22 +72,11 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-jest.mock('@/store/websocket-store', () => {
-  const actual = jest.requireActual('@/store/websocket-store');
-  return {
-    ...actual,
-    useWebSocketStore: () => ({
-      wsInstance: null,
-      setWebsocketInstance: jest.fn,
-    }),
-  };
-});
+jest.mock('@/store/websocket-store');
+const mockUseWebSocketStore = useWebSocketStore as jest.MockedFunction<typeof useWebSocketStore>;
 
-jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: mocks.setUser(),
-  }),
-}));
+jest.mock('@/store/auth-store');
+const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
 
 type Result = {
   current: ReturnType<typeof useChatRooms>;
@@ -109,6 +86,14 @@ describe('useChatRooms', () => {
   let result: Result;
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseAuthStore.mockImplementation(() => ({
+      user: { id: 'testUid' },
+    }));
+    mockUseWebSocketStore.mockImplementation(() => ({
+      wsInstance: {
+        send: mocks.send,
+      },
+    }));
   });
   describe('fetch rooms', () => {
     it('should fetch rooms', async () => {
@@ -119,7 +104,6 @@ describe('useChatRooms', () => {
           roomType: ROOM_TYPE.PUBLIC,
         },
       ];
-      mocks.setUser.mockReturnValue({ uid: 'testUid' });
       mocks.fetchAllByUserId.mockResolvedValue(mockRooms);
 
       await act(async () => {
@@ -136,7 +120,7 @@ describe('useChatRooms', () => {
         result = renderHook(() => useChatRooms()).result;
       });
 
-      act(() => {
+      await act(async () => {
         result.current.handleNextStep();
       });
 
@@ -147,13 +131,13 @@ describe('useChatRooms', () => {
         result = renderHook(() => useChatRooms()).result;
       });
 
-      act(() => {
+      await act(async () => {
         result.current.handleNextStep();
       });
 
       expect(result.current.currentStep).toBe(ROOM_CREATION_STEPS.CREATE_ROOM);
 
-      act(() => {
+      await act(async () => {
         result.current.handlePrevStep();
       });
 
@@ -167,9 +151,14 @@ describe('useChatRooms', () => {
         name: 'testRoom',
         roomType: ROOM_TYPE.PUBLIC,
       };
-      mocks.setUser.mockReturnValue({ uid: 'testUid' });
+      const mockEvent: RoomUserEvent = {
+        type: EVENT_TYPES.USER_JOINED,
+        data: {
+          userId: 'testUid',
+          roomId: mockRoom.id,
+        },
+      };
       mocks.create.mockResolvedValue(mockRoom);
-
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
       });
@@ -190,11 +179,13 @@ describe('useChatRooms', () => {
         roomType: formData.roomType,
         ownerId: 'testUid',
       });
-
+      expect(mocks.send).toHaveBeenCalledWith(JSON.stringify(mockEvent));
       expect(result.current.currentStep).toEqual(ROOM_CREATION_STEPS.CREATE_ROOM_RESULT);
     });
     it('should do nothing when user is null', async () => {
-      mocks.setUser.mockReturnValue(null);
+      mockUseAuthStore.mockImplementation(() => ({
+        user: null,
+      }));
 
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
@@ -222,6 +213,7 @@ describe('useChatRooms', () => {
       expect(mocks.setSelectedRoomId).toHaveBeenCalledWith('testRoomId');
     });
   });
+
   describe('search users', () => {
     it('should search users', async () => {
       const mockUsers = [
@@ -229,9 +221,12 @@ describe('useChatRooms', () => {
           id: 'testUserId',
           name: 'testUser',
           email: 'test@test.com',
+          createdAt: dayjs('2023-01-01'),
+          profileImageUrl: 'test-url',
         },
       ];
-      mocks.searchUsers.mockResolvedValue(mockUsers);
+
+      mocks.search.mockResolvedValue(mockUsers);
 
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
@@ -243,22 +238,27 @@ describe('useChatRooms', () => {
         await result.current.searchUsers(event);
       });
 
+      expect(mocks.search).toHaveBeenCalledWith({ from: 0, query: 'test', size: 20 });
       expect(result.current.searchedUsers).toEqual(mockUsers);
     });
   });
 
   describe('add users', () => {
     it('should add users', async () => {
-      const mockUsers = [
+      const mockUsers: User[] = [
         {
           id: 'testUserId-1',
           name: 'testUser-1',
           email: 'test-1@test.com',
+          createdAt: dayjs('2023-01-01'),
+          profileImageUrl: 'test-url',
         },
         {
           id: 'testUserId-2',
           name: 'testUser-2',
           email: 'test-2@test.com',
+          createdAt: dayjs('2023-01-01'),
+          profileImageUrl: 'test-url',
         },
       ];
 
@@ -291,6 +291,11 @@ describe('useChatRooms', () => {
       });
       expect(result.current.usersToBeAdded).toHaveLength(1);
 
+      act(() => {
+        result.current.addUserToList(mockUsers[0]);
+      });
+      expect(result.current.usersToBeAdded).toHaveLength(2);
+
       await act(async () => {
         await result.current.addUsersToRoom(mockRoom);
       });
@@ -298,10 +303,11 @@ describe('useChatRooms', () => {
       await waitFor(() => {
         expect(mocks.addUsers).toHaveBeenCalledWith({
           roomId: mockRoom.id,
-          userIds: [mockUsers[1].id],
+          userIds: [mockUsers[1].id, mockUsers[0].id],
         });
       });
 
+      expect(mocks.send).toHaveBeenCalledTimes(mockUsers.length);
       expect(result.current.currentStep).toEqual(currentStepValue + 1);
       expect(result.current.usersToBeAdded).toEqual([]);
     });

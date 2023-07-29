@@ -1,30 +1,53 @@
 import { useState, useCallback } from 'react';
 
+import { FirebaseError } from '@firebase/util';
 import { HTTPError } from 'ky';
+
+import { useToastMessageStore } from '@/store/toast-message-store';
 
 type ServerError = {
   error: string;
 };
 
 export function useErrorHandler() {
-  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState('');
+  const { setErrorToastMessage } = useToastMessageStore();
 
-  const handleError = useCallback(async (err: unknown) => {
-    console.error(err);
-    setHasError(true);
-    if (err instanceof HTTPError) {
-      const serverError = (await err.response.json()) as ServerError;
-      console.error(serverError.error);
-    } else if (err instanceof Error) {
-      console.error(err.message);
-    } else {
-      console.error('Unexpected error occurred');
-    }
-  }, []);
+  const handleError = useCallback(
+    async (err: unknown) => {
+      if (err instanceof HTTPError) {
+        const serverError = (await err.response.json()) as ServerError;
+        setError(serverError.error);
+      } else if (err instanceof FirebaseError) {
+        switch (err.code) {
+          case 'auth/email-already-in-use':
+            setError(err.message);
+            setErrorToastMessage('The email address is already in use by another account');
+            break;
+          case 'auth/user-not-found' || 'auth/wrong-password':
+            setError(err.message);
+            setErrorToastMessage('Email or password is incorrect');
+            break;
+          default:
+            setError(err.message);
+            setErrorToastMessage(
+              'Failed to authenticate for an unknown reason. Please try again later.',
+            );
+        }
+      } else if (err instanceof Error) {
+        setError(err.message);
+        setErrorToastMessage(err.message);
+      } else {
+        setError('Unexpected error occurred');
+        setErrorToastMessage('Unexpected error occurred');
+      }
+    },
+    [setErrorToastMessage],
+  );
 
   const resetError = useCallback(() => {
-    setHasError(false);
+    setError('');
   }, []);
 
-  return { hasError, handleError, resetError };
+  return { error, handleError, resetError };
 }

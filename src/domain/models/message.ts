@@ -6,6 +6,7 @@ export type Message = {
   readonly id: string;
   readonly userId: string;
   readonly userName: string;
+  readonly userImageUrl: string;
   readonly roomId: string;
   readonly content: string;
   readonly createdAt: Dayjs;

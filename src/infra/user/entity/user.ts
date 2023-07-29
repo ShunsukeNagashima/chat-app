@@ -4,6 +4,8 @@ export type User = {
   userId: string;
   userName: string;
   email: string;
+  imageUrl: string;
+  createdAt: Date;
 };
 
 export type CreateUserRequest = {

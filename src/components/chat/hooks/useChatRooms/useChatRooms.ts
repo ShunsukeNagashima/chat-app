@@ -7,13 +7,13 @@ import { z } from 'zod';
 import { ChatRoomFormInput } from '@/components/chat/type';
 import { Room } from '@/domain/models/room';
 import { User } from '@/domain/models/user';
-import { useAuth } from '@/hooks/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
 import { useErrorHandler } from '@/hooks/useErrorHandler/useErrorHandler';
 import { RoomCreationStepsEnum, ROOM_CREATION_STEPS, EVENT_TYPES } from '@/lib/enum';
 import { RoomUserEvent } from '@/lib/websocket-event';
 import { roomRepository } from '@/repository/room/room-repository';
 import { userRepository } from '@/repository/user/user-repository';
+import { useAuthStore } from '@/store/auth-store';
 import { useChatStore } from '@/store/chat-store';
 import { useWebSocketStore } from '@/store/websocket-store';
 
@@ -34,8 +34,8 @@ export const useChatRooms = () => {
   const [createdRoom, setCreatedRoom] = useState<Room>();
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
-  const { user: firebaseUser } = useAuth();
-  const { hasError, resetError, handleError } = useErrorHandler();
+  const { user: authUser } = useAuthStore();
+  const { error, resetError, handleError } = useErrorHandler();
   const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
   const { wsInstance } = useWebSocketStore();
   const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
@@ -78,15 +78,15 @@ export const useChatRooms = () => {
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
     async (data) => {
-      if (!firebaseUser) return;
+      if (!authUser) return;
       startLoading();
       try {
-        const room = await roomRepository.create({ ...data, ownerId: firebaseUser.uid });
+        const room = await roomRepository.create({ ...data, ownerId: authUser.id });
         setCreatedRoom(room);
         const eventData: RoomUserEvent = {
           type: EVENT_TYPES.USER_JOINED,
           data: {
-            userId: firebaseUser.uid,
+            userId: authUser.id,
             roomId: room.id,
           },
         };
@@ -99,15 +99,7 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [
-      firebaseUser,
-      wsInstance,
-      handleNextStep,
-      startLoading,
-      finishLoading,
-      handleError,
-      resetError,
-    ],
+    [authUser, wsInstance, handleNextStep, startLoading, finishLoading, handleError, resetError],
   );
 
   const searchUsers = useCallback(
@@ -121,7 +113,7 @@ export const useChatRooms = () => {
       startLoading();
       try {
         const users = await userRepository.search(req);
-        const usersWithoutOwner = users.filter((user) => user.id !== firebaseUser?.uid);
+        const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
         setSearchedUsers(usersWithoutOwner);
         resetError();
       } catch (err) {
@@ -130,7 +122,7 @@ export const useChatRooms = () => {
         finishLoading();
       }
     },
-    [startLoading, finishLoading, handleError, resetError, firebaseUser],
+    [authUser, startLoading, finishLoading, handleError, resetError],
   );
 
   const addUserToList = useCallback(
@@ -190,23 +182,23 @@ export const useChatRooms = () => {
   );
 
   const fetchRooms = useCallback(async () => {
-    if (!firebaseUser) return;
+    if (!authUser) return;
 
     try {
-      const rooms = await roomRepository.fetchAllByUserId({ userId: firebaseUser.uid });
+      const rooms = await roomRepository.fetchAllByUserId({ userId: authUser.id });
       resetError();
       return rooms;
     } catch (err) {
       handleError(err);
     }
-  }, [firebaseUser, handleError, resetError]);
+  }, [authUser, handleError, resetError]);
 
   useEffect(() => {
     (async () => {
       const rooms = await fetchRooms();
       rooms && setFetchedRooms(rooms);
     })();
-  }, [firebaseUser, handleError, resetError, fetchRooms]);
+  }, [authUser, handleError, resetError, fetchRooms]);
 
   useEffect(() => {
     if (!wsInstance) return;
@@ -224,7 +216,7 @@ export const useChatRooms = () => {
     rooms: fetchedRooms,
     formState,
     currentStep,
-    isActionFailed: hasError,
+    isActionFailed: !!error,
     loading,
     searchedUsers,
     usersToBeAdded,

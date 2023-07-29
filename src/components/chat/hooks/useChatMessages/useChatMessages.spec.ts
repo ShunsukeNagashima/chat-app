@@ -1,15 +1,15 @@
-import { renderHook, waitFor, act } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import dayjs from 'dayjs';
 
 import { useChatMessages } from './useChatMessages';
 
 import { messageRepository } from '@/repository/message/message-repository';
-import { useChatStore } from '@/store/chat-store';
+import { FetchAllByRoomIdPayload } from '@/repository/message/types';
+import { useAuthStore } from '@/store/auth-store';
 
 const mocks = {
   messages: [],
   setSelectedRoomId: jest.fn(),
-  setUser: jest.fn(),
   fetchAllByRoomId: jest.fn(),
   batchGet: jest.fn(),
   setMessages: jest.fn().mockImplementation((newMessages: any) => {
@@ -28,7 +28,7 @@ const setupWebSocketMock = () => {
 
 jest.mock('@/repository/message/message-repository', () => ({
   messageRepository: {
-    fetchAllByRoomId: (arg: { roomId: string; nextKey: string }) => mocks.fetchAllByRoomId(arg),
+    fetchAllByRoomId: (payload: FetchAllByRoomIdPayload) => mocks.fetchAllByRoomId(payload),
     create: jest.fn(),
   },
 }));
@@ -52,11 +52,8 @@ jest.mock('@/store/chat-store', () => {
   };
 });
 
-jest.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: mocks.setUser(),
-  }),
-}));
+jest.mock('@/store/auth-store');
+const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
 
 jest.mock('@/hooks/useErrorHandler', () => ({
   useErrorHandler: () => ({
@@ -74,28 +71,18 @@ type Result = {
   current: ReturnType<typeof useChatMessages>;
 };
 
-const createDefaultResult = (): Result => {
-  return {
-    current: {
-      messageContent: '',
-      nextKey: '',
-      sendMessage: () => Promise.resolve(),
-      handleChange: () => {},
-      fetchMoreMessages: () => Promise.resolve(),
-    },
-  };
-};
-
 describe('useChatMessages', () => {
   let result: Result;
   beforeEach(() => {
     jest.clearAllMocks();
-    result = createDefaultResult();
   });
 
   describe('sendMessage', () => {
     it('should do nothing when selectedRoomId is null', async () => {
       mocks.setSelectedRoomId.mockReturnValue(null);
+      mockUseAuthStore.mockImplementation(() => ({
+        user: null,
+      }));
 
       await act(async () => {
         result = renderHook(() => useChatMessages()).result;
@@ -109,8 +96,13 @@ describe('useChatMessages', () => {
       expect(messageRepository.create).not.toHaveBeenCalled();
     });
     it('should do nothing when user is not authenticated', async () => {
-      mocks.setUser.mockReturnValue(null);
-      const { result } = renderHook(() => useChatMessages());
+      mockUseAuthStore.mockImplementation(() => ({
+        user: null,
+      }));
+
+      await act(async () => {
+        result = renderHook(() => useChatMessages()).result;
+      });
 
       const event = { preventDefault: jest.fn() } as any;
       await act(async () => {
@@ -134,14 +126,16 @@ describe('useChatMessages', () => {
       const ws = setupWebSocketMock();
 
       mocks.setSelectedRoomId.mockReturnValue('testRoomId');
-      mocks.setUser.mockReturnValue({ uid: 'test' });
+      mockUseAuthStore.mockImplementation(() => ({
+        user: { id: 'testUserId' },
+      }));
       mocks.fetchAllByRoomId.mockResolvedValue({
         messages: [],
         nextKey: '',
       });
       mocks.batchGet.mockResolvedValue([]);
 
-      await waitFor(() => {
+      await act(async () => {
         result = renderHook(() => useChatMessages()).result;
       });
 
@@ -166,6 +160,10 @@ describe('useChatMessages', () => {
 
   describe('fetchMessagesAndUserNames', () => {
     it('should fetch messages and usernames', async () => {
+      mockUseAuthStore.mockImplementation(() => ({
+        user: { id: 'testUserId' },
+      }));
+
       const messagesWithUserName = [
         {
           id: 'test',
@@ -197,22 +195,21 @@ describe('useChatMessages', () => {
         },
       ]);
 
-      let result = createDefaultResult();
       await act(async () => {
         result = renderHook(() => useChatMessages()).result;
       });
 
-      const { result: chatStoreResult } = renderHook(() => useChatStore());
-
       expect(mocks.fetchAllByRoomId).toHaveBeenCalled();
       expect(mocks.batchGet).toHaveBeenCalled();
       expect(mocks.setMessages).toHaveBeenCalledWith(messagesWithUserName);
-      expect(chatStoreResult.current.messages).toStrictEqual(messagesWithUserName);
     });
   });
 
   it('should fetch user data from localStorage', async () => {
     mocks.setSelectedRoomId.mockReturnValue('testRoomId');
+    mockUseAuthStore.mockImplementation(() => ({
+      user: { id: 'testUserId' },
+    }));
 
     const messagesWithUserName = [
       {
@@ -222,6 +219,7 @@ describe('useChatMessages', () => {
         content: 'testContent',
         createdAt: dayjs(new Date(2023, 1, 1)),
         userName: 'testUserName',
+        userImageUrl: 'testUserImageUrl',
       },
     ];
 
@@ -241,14 +239,14 @@ describe('useChatMessages', () => {
     window.localStorage.setItem(
       'testRoomId',
       JSON.stringify({
-        userNameMap: {
-          testUserId: 'testUserName',
+        userMap: {
+          testUserId: { name: 'testUserName', imageUrl: 'testUserImageUrl' },
         },
         timestamp: Date.now(),
       }),
     );
 
-    await waitFor(async () => {
+    await act(async () => {
       result = renderHook(() => useChatMessages()).result;
     });
 
