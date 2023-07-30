@@ -32,8 +32,6 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
     handleNextStep,
   } = props;
 
-  console.log(nextKey);
-  console.log(users.length);
   return (
     <Modal title='Add Users to Room' handleClose={handleClose} closeOnOverlayClick={false}>
       <div>
