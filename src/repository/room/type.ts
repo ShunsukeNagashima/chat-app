@@ -14,3 +14,8 @@ export type AddUsersPayload = {
   roomId: string;
   userIds: string[];
 };
+
+export type RemoveUserPayload = {
+  roomId: string;
+  userId: string;
+};

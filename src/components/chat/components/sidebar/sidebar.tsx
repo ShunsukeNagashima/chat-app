@@ -27,7 +27,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
     openCreateRoomModal,
   } = props;
   return (
-    <aside className='w-64 border-r border-gray-700 p-4 text-white'>
+    <aside className='w-64 overflow-y-hidden border-r border-gray-700 p-4 text-white hover:overflow-y-auto'>
       <div className='mb-8 flex items-center justify-between'>
         <h1 className='text-xl font-bold'>Chat App</h1>
         <button onClick={toggleDropdown} className='relative'>

@@ -1,4 +1,9 @@
-import { CreateRoomPayload, FetchAllByUserIdPayload, AddUsersPayload } from './type';
+import {
+  CreateRoomPayload,
+  FetchAllByUserIdPayload,
+  AddUsersPayload,
+  RemoveUserPayload,
+} from './type';
 
 import { Room } from '@/domain/models/room';
 import { RoomClass } from '@/domain/models/room';
@@ -8,6 +13,7 @@ export interface RoomRepository {
   create(payload: CreateRoomPayload): Promise<Room>;
   fetchAllByUserId: (payload: FetchAllByUserIdPayload) => Promise<Room[]>;
   addUsers: (payload: AddUsersPayload) => Promise<void>;
+  removeUser: (payload: RemoveUserPayload) => Promise<void>;
 }
 
 export class RoomRepositoryImpl implements RoomRepository {
@@ -41,6 +47,12 @@ export class RoomRepositoryImpl implements RoomRepository {
     const { roomId, ...rest } = payload;
 
     await this.roomClient.addUsers(roomId, rest);
+  }
+
+  async removeUser(payload: RemoveUserPayload): Promise<void> {
+    const { roomId, userId } = payload;
+
+    await this.roomClient.removeUser(roomId, userId);
   }
 }
 

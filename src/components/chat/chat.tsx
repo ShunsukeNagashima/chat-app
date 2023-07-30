@@ -14,6 +14,7 @@ import {
 import { useChatMessages } from './hooks/useChatMessages';
 import { useChatRooms } from './hooks/useChatRooms';
 
+import { LeaveRoomConfirmModal } from '@/components/chat/components/leave-room-confirm-modal';
 import { Sidebar } from '@/components/chat/components/sidebar';
 import { StepContent } from '@/components/ui/step-content';
 import { useAuth } from '@/hooks/useAuth/useAuth';
@@ -35,6 +36,7 @@ export const Chat: FC = () => {
     usersToBeAdded,
     createdRoom,
     nextKey: nextKeyForUsers,
+    isOpenLeaveConfirmation,
     createRoom,
     selectRoom,
     handleNextStep,
@@ -48,6 +50,9 @@ export const Chat: FC = () => {
     removeUserFromList,
     addUsersToRoom,
     handleOpenAddUsers,
+    openLeaveConfirmation,
+    closeLeaveConfirmation,
+    leaveFromRoom,
   } = useChatRooms();
   const {
     messageContent,
@@ -80,7 +85,7 @@ export const Chat: FC = () => {
                 </span>
               </div>
               <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
-                <ImExit size={20} />
+                <ImExit size={20} onClick={openLeaveConfirmation} />
                 <span className='absolute right-0 top-full mt-2 w-auto min-w-[100px] rounded bg-gray-700 px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                   Leave Room
                 </span>
@@ -156,6 +161,14 @@ export const Chat: FC = () => {
           hasError={isActionFailed}
         />
       </StepContent>
+
+      {isOpenLeaveConfirmation && (
+        <LeaveRoomConfirmModal
+          roomName={selectedRoom?.name ?? ''}
+          handleLeaveRoom={leaveFromRoom}
+          handleClose={closeLeaveConfirmation}
+        />
+      )}
     </div>
   );
 };

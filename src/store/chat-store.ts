@@ -11,6 +11,7 @@ export type ChatStore = {
   addMessage: (message: Message) => void;
   setSelectedRoom: (room: Room) => void;
   clearMessages: () => void;
+  resetSelectedRoom: () => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
@@ -20,4 +21,5 @@ export const useChatStore = create<ChatStore>((set) => ({
   addMessage: (message) => set((state) => ({ messages: [message, ...state.messages] })),
   clearMessages: () => set({ messages: [] }),
   setSelectedRoom: (room) => set({ selectedRoom: room }),
+  resetSelectedRoom: () => set({ selectedRoom: undefined }),
 }));
