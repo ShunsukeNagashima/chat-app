@@ -30,3 +30,7 @@ export type FetchAllByUserIDResponse = {
 export type AddUsersResponse = {
   result: string;
 };
+
+export type RemoveUserResponse = {
+  result: string;
+};

@@ -7,6 +7,7 @@ import {
   FetchAllByUserIDResponse,
   CreateRoomResponse,
   AddUsersResponse,
+  RemoveUserResponse,
 } from './entity/room';
 
 import { kyInstance } from '@/lib/ky';
@@ -31,6 +32,13 @@ export class RoomClient {
     const response = await this.ky
       .post(`api/rooms/${roomId}/users`, { json: req })
       .json<AddUsersResponse>();
+    return response.result;
+  }
+
+  async removeUser(roomId: string, userId: string): Promise<string> {
+    const response = await this.ky
+      .delete(`api/rooms/${roomId}/users/${userId}`)
+      .json<RemoveUserResponse>();
     return response.result;
   }
 }
