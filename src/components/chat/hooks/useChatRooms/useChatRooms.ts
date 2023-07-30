@@ -33,12 +33,14 @@ export const useChatRooms = () => {
   const [usersToBeAdded, setUsersToBeAdded] = useState<User[]>([]);
   const [createdRoom, setCreatedRoom] = useState<Room>();
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
+  const [nextKey, setNextKey] = useState('');
+  const [previousSearchQuery, setPreviousSearchQuery] = useState('');
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
   const { user: authUser } = useAuthStore();
   const { error, resetError, handleError } = useErrorHandler();
-  const { clearMessages, setSelectedRoomId, selectedRoomId } = useChatStore();
+  const { clearMessages, setSelectedRoom, selectedRoom } = useChatStore();
   const { wsInstance } = useWebSocketStore();
-  const { register, handleSubmit, formState } = useForm<ChatRoomFormInput>({
+  const { register, handleSubmit, formState, reset } = useForm<ChatRoomFormInput>({
     resolver: zodResolver(schema),
     mode: 'onChange',
   });
@@ -63,17 +65,27 @@ export const useChatRooms = () => {
     });
   }, []);
 
-  const handleClose = useCallback(() => {
-    setCurrentStep(ROOM_CREATION_STEPS.CLOSED);
+  const handleOpenAddUsers = useCallback(() => {
+    setCurrentStep(ROOM_CREATION_STEPS.ADD_USERS);
   }, []);
 
+  const handleClose = useCallback(() => {
+    setCurrentStep(ROOM_CREATION_STEPS.CLOSED);
+    resetError();
+    setUsersToBeAdded([]);
+    setSearchedUsers([]);
+    setNextKey('');
+    setPreviousSearchQuery('');
+    setCreatedRoom(undefined);
+  }, [resetError, setUsersToBeAdded, setSearchedUsers]);
+
   const selectRoom = useCallback(
-    (roomId: string) => {
-      if (selectedRoomId === roomId) return;
-      setSelectedRoomId(roomId);
+    (room: Room) => {
+      if (selectedRoom?.id === room.id) return;
+      setSelectedRoom(room);
       clearMessages();
     },
-    [selectedRoomId, clearMessages, setSelectedRoomId],
+    [selectedRoom, clearMessages, setSelectedRoom],
   );
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
@@ -93,13 +105,23 @@ export const useChatRooms = () => {
         wsInstance?.send(JSON.stringify(eventData));
         handleNextStep();
         resetError();
+        reset();
       } catch (err) {
         handleError(err);
       } finally {
         finishLoading();
       }
     },
-    [authUser, wsInstance, handleNextStep, startLoading, finishLoading, handleError, resetError],
+    [
+      authUser,
+      wsInstance,
+      handleNextStep,
+      startLoading,
+      finishLoading,
+      handleError,
+      resetError,
+      reset,
+    ],
   );
 
   const searchUsers = useCallback(
@@ -107,14 +129,16 @@ export const useChatRooms = () => {
       const query = event.target.value;
       const req = {
         query,
-        from: 0,
+        nextKey: '',
         size: 20,
       };
       startLoading();
       try {
-        const users = await userRepository.search(req);
+        const { users, nextKey: fetchedNextKey } = await userRepository.search(req);
         const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
         setSearchedUsers(usersWithoutOwner);
+        setNextKey(fetchedNextKey);
+        setPreviousSearchQuery(query);
         resetError();
       } catch (err) {
         handleError(err);
@@ -124,6 +148,36 @@ export const useChatRooms = () => {
     },
     [authUser, startLoading, finishLoading, handleError, resetError],
   );
+
+  const searchMoreUsers = useCallback(async () => {
+    console.log(previousSearchQuery);
+    if (!previousSearchQuery) return;
+    const req = {
+      query: previousSearchQuery,
+      nextKey,
+      size: 20,
+    };
+    startLoading();
+    try {
+      const { users, nextKey: fetchedNextKey } = await userRepository.search(req);
+      const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
+      setSearchedUsers((prevUsers) => [...prevUsers, ...usersWithoutOwner]);
+      setNextKey(fetchedNextKey);
+      resetError();
+    } catch (err) {
+      handleError(err);
+    } finally {
+      finishLoading();
+    }
+  }, [
+    authUser,
+    nextKey,
+    previousSearchQuery,
+    startLoading,
+    finishLoading,
+    handleError,
+    resetError,
+  ]);
 
   const addUserToList = useCallback(
     (user: User) => {
@@ -164,6 +218,7 @@ export const useChatRooms = () => {
         handleNextStep();
         resetError();
         setUsersToBeAdded([]);
+        setSearchedUsers([]);
       } catch (err) {
         handleError(err);
       } finally {
@@ -221,6 +276,7 @@ export const useChatRooms = () => {
     searchedUsers,
     usersToBeAdded,
     createdRoom,
+    nextKey,
     createRoom,
     selectRoom,
     register,
@@ -229,8 +285,10 @@ export const useChatRooms = () => {
     handlePrevStep,
     handleClose,
     searchUsers,
+    searchMoreUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,
+    handleOpenAddUsers,
   };
 };

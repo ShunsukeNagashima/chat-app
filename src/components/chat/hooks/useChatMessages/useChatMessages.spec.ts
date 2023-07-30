@@ -3,13 +3,14 @@ import dayjs from 'dayjs';
 
 import { useChatMessages } from './useChatMessages';
 
+import { ROOM_TYPE } from '@/lib/enum';
 import { messageRepository } from '@/repository/message/message-repository';
 import { FetchAllByRoomIdPayload } from '@/repository/message/types';
 import { useAuthStore } from '@/store/auth-store';
 
 const mocks = {
   messages: [],
-  setSelectedRoomId: jest.fn(),
+  setSelectedRoom: jest.fn(),
   fetchAllByRoomId: jest.fn(),
   batchGet: jest.fn(),
   setMessages: jest.fn().mockImplementation((newMessages: any) => {
@@ -45,7 +46,7 @@ jest.mock('@/store/chat-store', () => {
     ...actual,
     useChatStore: () => ({
       messages: mocks.messages,
-      selectedRoomId: mocks.setSelectedRoomId(),
+      selectedRoom: mocks.setSelectedRoom(),
       addMessage: jest.fn(),
       setMessages: mocks.setMessages,
     }),
@@ -78,8 +79,8 @@ describe('useChatMessages', () => {
   });
 
   describe('sendMessage', () => {
-    it('should do nothing when selectedRoomId is null', async () => {
-      mocks.setSelectedRoomId.mockReturnValue(null);
+    it('should do nothing when selectedRoom is null', async () => {
+      mocks.setSelectedRoom.mockReturnValue(null);
       mockUseAuthStore.mockImplementation(() => ({
         user: null,
       }));
@@ -124,8 +125,13 @@ describe('useChatMessages', () => {
     });
     it('should create message', async () => {
       const ws = setupWebSocketMock();
+      const mockRoom = {
+        id: 'testRoomId',
+        name: 'testRoom',
+        roomType: ROOM_TYPE.PUBLIC,
+      };
 
-      mocks.setSelectedRoomId.mockReturnValue('testRoomId');
+      mocks.setSelectedRoom.mockReturnValue(mockRoom);
       mockUseAuthStore.mockImplementation(() => ({
         user: { id: 'testUserId' },
       }));
@@ -206,7 +212,12 @@ describe('useChatMessages', () => {
   });
 
   it('should fetch user data from localStorage', async () => {
-    mocks.setSelectedRoomId.mockReturnValue('testRoomId');
+    const mockRoom = {
+      id: 'testRoomId',
+      name: 'testRoom',
+      roomType: ROOM_TYPE.PUBLIC,
+    };
+    mocks.setSelectedRoom.mockReturnValue(mockRoom);
     mockUseAuthStore.mockImplementation(() => ({
       user: { id: 'testUserId' },
     }));
@@ -254,7 +265,12 @@ describe('useChatMessages', () => {
     expect(mocks.batchGet).not.toHaveBeenCalled();
   });
   it('should fetch user data if timestamp is not valid', async () => {
-    mocks.setSelectedRoomId.mockReturnValue('testRoomId');
+    const mockRoom = {
+      id: 'testRoomId',
+      name: 'testRoom',
+      roomType: ROOM_TYPE.PUBLIC,
+    };
+    mocks.setSelectedRoom.mockReturnValue(mockRoom);
 
     mocks.fetchAllByRoomId.mockResolvedValue({
       messages: [
@@ -286,7 +302,12 @@ describe('useChatMessages', () => {
     expect(mocks.batchGet).toHaveBeenCalled();
   });
   it('should fetch more messages', async () => {
-    mocks.setSelectedRoomId.mockReturnValue('testRoomId');
+    const mockRoom = {
+      id: 'testRoomId',
+      name: 'testRoom',
+      roomType: ROOM_TYPE.PUBLIC,
+    };
+    mocks.setSelectedRoom.mockReturnValue(mockRoom);
 
     mocks.fetchAllByRoomId.mockResolvedValue({
       messages: [

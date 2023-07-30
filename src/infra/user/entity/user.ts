@@ -29,12 +29,13 @@ export type FetchByIdResponse = {
 
 export type SearchUsersRequest = {
   query: string;
-  from: number;
+  nextKey: string;
   size: number;
 };
 
 export type SearchUsersResponse = {
   result: User[];
+  nextKey: string;
 };
 
 export type BatchGetUsersRequest = {

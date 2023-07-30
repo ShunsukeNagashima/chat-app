@@ -1,5 +1,8 @@
 import { FC } from 'react';
 
+import { BsPersonPlusFill } from 'react-icons/bs';
+import { ImExit } from 'react-icons/im';
+
 import {
   MessageList,
   MessageForm,
@@ -15,11 +18,11 @@ import { Sidebar } from '@/components/chat/components/sidebar';
 import { StepContent } from '@/components/ui/step-content';
 import { useAuth } from '@/hooks/useAuth/useAuth';
 import { useBoolean } from '@/hooks/useBoolean';
-import { ROOM_CREATION_STEPS, RoomCreationStepsEnum } from '@/lib/enum';
+import { ROOM_CREATION_STEPS } from '@/lib/enum';
 import { useChatStore } from '@/store/chat-store';
 
 export const Chat: FC = () => {
-  const { messages, selectedRoomId } = useChatStore();
+  const { messages, selectedRoom } = useChatStore();
   const [isOpenDropdown, { toggle: toggleDropdown }] = useBoolean(false);
   const { logout } = useAuth();
   const {
@@ -31,6 +34,7 @@ export const Chat: FC = () => {
     searchedUsers,
     usersToBeAdded,
     createdRoom,
+    nextKey: nextKeyForUsers,
     createRoom,
     selectRoom,
     handleNextStep,
@@ -39,36 +43,63 @@ export const Chat: FC = () => {
     register,
     handleSubmit,
     searchUsers,
+    searchMoreUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,
+    handleOpenAddUsers,
   } = useChatRooms();
-  const { messageContent, nextKey, sendMessage, handleChange, fetchMoreMessages } =
-    useChatMessages();
+  const {
+    messageContent,
+    nextKey: nextKeyForMessages,
+    sendMessage,
+    handleChange,
+    fetchMoreMessages,
+  } = useChatMessages();
 
   return (
     <div className='flex h-screen bg-gray-800'>
       <Sidebar
         isOpen={isOpenDropdown}
-        selectedRoomId={selectedRoomId}
+        selectedRoomId={selectedRoom?.id ?? ''}
         handleLogout={logout}
         toggleDropdown={toggleDropdown}
         selectRoom={selectRoom}
         chatRooms={rooms}
         openCreateRoomModal={handleNextStep}
       />
-      <main className='flex h-screen flex-1 flex-col justify-between'>
+      <main className='flex h-screen flex-1 flex-col justify-between text-white'>
+        {selectedRoom && (
+          <div className='flex h-[60px] items-center justify-between border-b border-gray-700 px-4 text-xl font-bold'>
+            {selectedRoom.name}
+            <div className='flex gap-x-6'>
+              <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
+                <BsPersonPlusFill size={20} onClick={handleOpenAddUsers} />
+                <span className='absolute left-1/2 top-full mt-2 min-w-[90px] -translate-x-1/2 rounded bg-gray-700 px-2 py-1 text-center text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                  Add Users
+                </span>
+              </div>
+              <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
+                <ImExit size={20} />
+                <span className='absolute right-0 top-full mt-2 w-auto min-w-[100px] rounded bg-gray-700 px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                  Leave Room
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <MessageList
           messages={messages}
-          selectedRoomId={selectedRoomId}
-          nextKey={nextKey}
+          selectedRoomId={selectedRoom?.id ?? ''}
+          nextKey={nextKeyForMessages}
           fetchMoreMessages={fetchMoreMessages}
         />
         <MessageForm
           sendMessage={sendMessage}
           handleChange={handleChange}
           messageContent={messageContent}
-          selectedRoomId={selectedRoomId}
+          selectedRoomId={selectedRoom?.id ?? ''}
           className='mt-auto'
         />
       </main>
@@ -97,8 +128,10 @@ export const Chat: FC = () => {
         <AddUsersModal
           users={searchedUsers}
           usersToBeAdded={usersToBeAdded}
+          nextKey={nextKeyForUsers}
           handleClose={handleClose}
           searchUsers={searchUsers}
+          searchMoreUsers={searchMoreUsers}
           addUserToList={addUserToList}
           removeUserFromList={removeUserFromList}
           handleNextStep={handleNextStep}
@@ -107,7 +140,7 @@ export const Chat: FC = () => {
 
       <StepContent step={ROOM_CREATION_STEPS.ADD_USERS_CONFIRM} currentStep={currentStep}>
         <AddUsersConfirmModal
-          room={createdRoom}
+          room={createdRoom ?? selectedRoom}
           usersToBeAdded={usersToBeAdded}
           handleClose={handleClose}
           handlePrevStep={handlePrevStep}

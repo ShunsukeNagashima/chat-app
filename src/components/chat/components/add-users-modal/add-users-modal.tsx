@@ -1,14 +1,19 @@
-import { FC, use } from 'react';
+import { FC } from 'react';
+
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { Modal } from '@/components/ui';
 import { Button } from '@/components/ui';
+import { Spinner } from '@/components/ui';
 import { User } from '@/domain/models/user';
 
 type AddUsersModalProps = {
   users: User[];
   usersToBeAdded: User[];
+  nextKey: string;
   handleClose: () => void;
   searchUsers: (event: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+  searchMoreUsers: () => Promise<void>;
   addUserToList: (user: User) => void;
   removeUserFromList: (userId: string) => void;
   handleNextStep: () => void;
@@ -18,13 +23,17 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
   const {
     users,
     usersToBeAdded,
+    nextKey,
     handleClose,
     searchUsers,
+    searchMoreUsers,
     addUserToList,
     removeUserFromList,
     handleNextStep,
   } = props;
 
+  console.log(nextKey);
+  console.log(users.length);
   return (
     <Modal title='Add Users to Room' handleClose={handleClose} closeOnOverlayClick={false}>
       <div>
@@ -37,22 +46,34 @@ export const AddUsersModal: FC<AddUsersModalProps> = (props) => {
           />
         </div>
 
-        <ul className='mb-4 h-64 overflow-y-auto border border-gray-700 p-2'>
-          {users.map((user, index) => (
-            <li key={index} className='mb-2 flex items-center justify-between'>
-              <span>{user.name}</span>
-              {usersToBeAdded.includes(user) ? (
-                <Button color='dangerous' onClick={() => removeUserFromList(user.id)}>
-                  Remove
-                </Button>
-              ) : (
-                <Button color='primary' onClick={() => addUserToList(user)}>
-                  Add
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div
+          className='mb-4 h-[200px] overflow-y-auto border border-gray-700 p-2'
+          id='scrollableModalDiv'
+        >
+          <InfiniteScroll
+            dataLength={users.length}
+            next={searchMoreUsers}
+            hasMore={!!nextKey}
+            loader={<Spinner />}
+            endMessage={<p className='text-center font-bold'>No more users by given keyword</p>}
+            scrollableTarget='scrollableModalDiv'
+          >
+            {users.map((user, index) => (
+              <div key={index} className='mb-2 flex items-center justify-between'>
+                <span>{user.name}</span>
+                {usersToBeAdded.includes(user) ? (
+                  <Button color='dangerous' onClick={() => removeUserFromList(user.id)}>
+                    Remove
+                  </Button>
+                ) : (
+                  <Button color='primary' onClick={() => addUserToList(user)}>
+                    Add
+                  </Button>
+                )}
+              </div>
+            ))}
+          </InfiniteScroll>
+        </div>
 
         <div className='flex justify-end space-x-4'>
           <Button color='primary' disabled={!usersToBeAdded.length} onClick={handleNextStep}>
