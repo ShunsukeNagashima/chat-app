@@ -35,10 +35,12 @@ export const useChatRooms = () => {
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [nextKey, setNextKey] = useState('');
   const [previousSearchQuery, setPreviousSearchQuery] = useState('');
+  const [isOpenLeaveConfirmation, { on: openLeaveConfirmation, off: closeLeaveConfirmation }] =
+    useBoolean(false);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
   const { user: authUser } = useAuthStore();
   const { error, resetError, handleError } = useErrorHandler();
-  const { clearMessages, setSelectedRoom, selectedRoom } = useChatStore();
+  const { selectedRoom, clearMessages, setSelectedRoom, resetSelectedRoom } = useChatStore();
   const { wsInstance } = useWebSocketStore();
   const { register, handleSubmit, formState, reset } = useForm<ChatRoomFormInput>({
     resolver: zodResolver(schema),
@@ -96,7 +98,7 @@ export const useChatRooms = () => {
         const room = await roomRepository.create({ ...data, ownerId: authUser.id });
         setCreatedRoom(room);
         const eventData: RoomUserEvent = {
-          type: EVENT_TYPES.USER_JOINED,
+          type: EVENT_TYPES.ROOM_USER_CHANGE,
           data: {
             userId: authUser.id,
             roomId: room.id,
@@ -207,7 +209,7 @@ export const useChatRooms = () => {
         await roomRepository.addUsers(req);
         for (const userId of userIds) {
           const eventData: RoomUserEvent = {
-            type: EVENT_TYPES.USER_JOINED,
+            type: EVENT_TYPES.ROOM_USER_CHANGE,
             data: {
               userId,
               roomId: room.id,
@@ -236,6 +238,31 @@ export const useChatRooms = () => {
     ],
   );
 
+  const leaveFromRoom = useCallback(async () => {
+    if (!authUser || !selectedRoom) return;
+
+    const userId = authUser.id;
+    const roomId = selectedRoom.id;
+
+    await roomRepository.removeUser({
+      roomId,
+      userId,
+    });
+
+    resetSelectedRoom();
+    closeLeaveConfirmation();
+
+    const eventData: RoomUserEvent = {
+      type: EVENT_TYPES.ROOM_USER_CHANGE,
+      data: {
+        userId,
+        roomId,
+      },
+    };
+
+    wsInstance?.send(JSON.stringify(eventData));
+  }, [authUser, selectedRoom, wsInstance, resetSelectedRoom, closeLeaveConfirmation]);
+
   const fetchRooms = useCallback(async () => {
     if (!authUser) return;
 
@@ -260,7 +287,7 @@ export const useChatRooms = () => {
 
     wsInstance.onmessage = async (event) => {
       const eventData = JSON.parse(event.data) as RoomUserEvent;
-      if (eventData.type === EVENT_TYPES.USER_JOINED) {
+      if (eventData.type === EVENT_TYPES.ROOM_USER_CHANGE) {
         const rooms = await fetchRooms();
         rooms && setFetchedRooms(rooms);
       }
@@ -277,6 +304,7 @@ export const useChatRooms = () => {
     usersToBeAdded,
     createdRoom,
     nextKey,
+    isOpenLeaveConfirmation,
     createRoom,
     selectRoom,
     register,
@@ -290,5 +318,8 @@ export const useChatRooms = () => {
     removeUserFromList,
     addUsersToRoom,
     handleOpenAddUsers,
+    openLeaveConfirmation,
+    closeLeaveConfirmation,
+    leaveFromRoom,
   };
 };

@@ -152,7 +152,7 @@ describe('useChatRooms', () => {
         roomType: ROOM_TYPE.PUBLIC,
       };
       const mockEvent: RoomUserEvent = {
-        type: EVENT_TYPES.USER_JOINED,
+        type: EVENT_TYPES.ROOM_USER_CHANGE,
         data: {
           userId: 'testUid',
           roomId: mockRoom.id,
