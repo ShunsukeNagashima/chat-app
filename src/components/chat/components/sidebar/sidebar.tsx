@@ -30,7 +30,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
     <aside className='w-64 overflow-y-hidden border-r border-gray-700 p-4 text-white hover:overflow-y-auto'>
       <div className='mb-8 flex items-center justify-between'>
         <h1 className='text-xl font-bold'>Chat App</h1>
-        <button onClick={toggleDropdown} className='relative'>
+        <div onClick={toggleDropdown} className='relative' role='button' tabIndex={0}>
           <RiArrowDropDownLine size={40} />
           {isOpen && (
             <ul className='absolute right-0 z-10 mt-2 w-48 rounded bg-gray-700 py-2 shadow-lg'>
@@ -41,7 +41,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
               </li>
             </ul>
           )}
-        </button>
+        </div>
       </div>
       <div className='px-2'>
         <div className='flex flex-col items-start gap-y-4 text-gray-400 '>
