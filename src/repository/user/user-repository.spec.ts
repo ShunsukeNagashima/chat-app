@@ -107,14 +107,14 @@ describe('UserRepository', () => {
     }
 
     const client = proxy(mockClient, {
-      searchUsers: jest.fn().mockResolvedValue([mockUsers[0]]),
+      searchUsers: jest.fn().mockResolvedValue({ users: [mockUsers[0]], nextKey: '' }),
     });
 
     const userRepository = new UserRepositoryImpl(client);
 
-    const users = await userRepository.search({
+    const { users, nextKey } = await userRepository.search({
       query: '0',
-      from: 0,
+      nextKey: '',
       size: 20,
     });
 
@@ -122,5 +122,6 @@ describe('UserRepository', () => {
     expect(users[0].id).toEqual('test-user-id-0');
     expect(users[0].name).toEqual('0-test-user-name');
     expect(users[0].email).toEqual('user-0@test.com');
+    expect(nextKey).toEqual('');
   });
 });

@@ -29,11 +29,14 @@ export class UserClient {
     return reponse.result;
   }
 
-  async searchUsers(req: SearchUsersRequest): Promise<User[]> {
+  async searchUsers(req: SearchUsersRequest): Promise<{ users: User[]; nextKey: string }> {
     const response = await this.ky
       .get('api/users/search', { searchParams: req })
       .json<SearchUsersResponse>();
-    return response.result;
+    return {
+      users: response.result,
+      nextKey: response.nextKey,
+    };
   }
 
   async batchGet(req: BatchGetUsersRequest): Promise<User[]> {

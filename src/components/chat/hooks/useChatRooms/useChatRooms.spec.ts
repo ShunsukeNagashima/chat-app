@@ -18,7 +18,7 @@ import { useWebSocketStore } from '@/store/websocket-store';
 const mocks = {
   fetchAllByUserId: jest.fn(),
   create: jest.fn(),
-  setSelectedRoomId: jest.fn(),
+  setSelectedRoom: jest.fn(),
   search: jest.fn(),
   addUsers: jest.fn(),
   send: jest.fn(),
@@ -61,7 +61,7 @@ jest.mock('@/store/chat-store', () => ({
   ...jest.requireActual('@/store/chat-store'),
   useChatStore: () => ({
     setRooms: jest.fn(),
-    setSelectedRoomId: mocks.setSelectedRoomId,
+    setSelectedRoom: mocks.setSelectedRoom,
     clearMessages: jest.fn(),
   }),
 }));
@@ -202,15 +202,21 @@ describe('useChatRooms', () => {
   });
   describe('select room', () => {
     it('should select room', async () => {
+      const mockRoom = {
+        id: 'testRoomId',
+        name: 'testRoom',
+        roomType: ROOM_TYPE.PUBLIC,
+      };
+
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
       });
 
       await act(async () => {
-        result.current.selectRoom('testRoomId');
+        result.current.selectRoom(mockRoom);
       });
 
-      expect(mocks.setSelectedRoomId).toHaveBeenCalledWith('testRoomId');
+      expect(mocks.setSelectedRoom).toHaveBeenCalledWith(mockRoom);
     });
   });
 
@@ -226,7 +232,7 @@ describe('useChatRooms', () => {
         },
       ];
 
-      mocks.search.mockResolvedValue(mockUsers);
+      mocks.search.mockResolvedValue({ users: mockUsers, nextKey: '' });
 
       await act(async () => {
         result = renderHook(() => useChatRooms()).result;
@@ -238,7 +244,7 @@ describe('useChatRooms', () => {
         await result.current.searchUsers(event);
       });
 
-      expect(mocks.search).toHaveBeenCalledWith({ from: 0, query: 'test', size: 20 });
+      expect(mocks.search).toHaveBeenCalledWith({ nextKey: '', query: 'test', size: 20 });
       expect(result.current.searchedUsers).toEqual(mockUsers);
     });
   });

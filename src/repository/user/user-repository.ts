@@ -5,6 +5,7 @@ import {
   FetchByIdPayload,
   SearchUsersPayload,
   BatchGetUsersPayload,
+  SearchUsersResponse,
 } from './types';
 
 import { UserClass, User } from '@/domain/models/user';
@@ -13,7 +14,7 @@ import { userClient, UserClient } from '@/infra/user/user-client';
 interface UserRepository {
   create(payload: CreateUserPayload): Promise<User>;
   fetchById(payload: FetchByIdPayload): Promise<User>;
-  search(payload: SearchUsersPayload): Promise<User[]>;
+  search(payload: SearchUsersPayload): Promise<SearchUsersResponse>;
   batchGet(payload: BatchGetUsersPayload): Promise<User[]>;
 }
 
@@ -43,10 +44,10 @@ export class UserRepositoryImpl implements UserRepository {
     });
   }
 
-  async search(payload: SearchUsersPayload): Promise<User[]> {
-    const users = await this.userClient.searchUsers(payload);
+  async search(payload: SearchUsersPayload): Promise<SearchUsersResponse> {
+    const { users: usersFromClient, nextKey } = await this.userClient.searchUsers(payload);
 
-    return users.map((user) => {
+    const users = usersFromClient.map((user) => {
       return UserClass.create({
         id: user.userId,
         name: user.userName,
@@ -55,6 +56,8 @@ export class UserRepositoryImpl implements UserRepository {
         createdAt: dayjs(user.createdAt),
       });
     });
+
+    return { users, nextKey };
   }
 
   async batchGet(payload: BatchGetUsersPayload): Promise<User[]> {

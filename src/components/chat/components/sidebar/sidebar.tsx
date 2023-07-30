@@ -12,7 +12,7 @@ type SidebarProps = {
   selectedRoomId: string;
   handleLogout: () => Promise<void>;
   toggleDropdown: () => void;
-  selectRoom: (id: string) => void;
+  selectRoom: (room: Room) => void;
   openCreateRoomModal: () => void;
 };
 
@@ -52,7 +52,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
                   className={`flex w-full items-center gap-1 rounded-md p-2 text-start hover:bg-gray-700 ${
                     room.id === selectedRoomId && 'font-bold text-white'
                   }`}
-                  onClick={() => selectRoom(room.id)}
+                  onClick={() => selectRoom(room)}
                   key={room.id}
                 >
                   {room.roomType === 'public' ? <BiConversation /> : <AiFillLock />}

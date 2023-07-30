@@ -14,7 +14,7 @@ import { useChatStore } from '@/store/chat-store';
 type UserMap = Record<string, Record<string, string>>;
 
 export const useChatMessages = () => {
-  const { messages, selectedRoomId, addMessage, setMessages } = useChatStore();
+  const { messages, selectedRoom, addMessage, setMessages } = useChatStore();
   const [messageContent, setMessageContent] = useState('');
   const [nextKey, setNextKey] = useState('');
   const { resetError, handleError } = useErrorHandler();
@@ -23,11 +23,11 @@ export const useChatMessages = () => {
 
   const sendMessage = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
-      if (!selectedRoomId || !user) return;
+      if (!selectedRoom || !user) return;
       event.preventDefault();
       try {
         const message = await messageRepository.create({
-          roomId: selectedRoomId,
+          roomId: selectedRoom.id,
           userId: user.id,
           content: messageContent,
         });
@@ -42,7 +42,7 @@ export const useChatMessages = () => {
         handleError(err);
       }
     },
-    [user, messageContent, selectedRoomId, handleError, resetError],
+    [user, messageContent, selectedRoom, handleError, resetError],
   );
 
   const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,17 +55,17 @@ export const useChatMessages = () => {
   }, []);
 
   const fetchMessagesAndUserNames = useCallback(
-    async (nextKey?: string) => {
+    async (roomId: string, nextKey?: string) => {
       const { messages: fetchedMessages, nextKey: fetchedNextKey } =
         await messageRepository.fetchAllByRoomId({
-          roomId: selectedRoomId,
+          roomId: roomId,
           nextKey: nextKey ?? '',
         });
 
       let userMap: UserMap = {};
       let storedTimestamp = 0;
 
-      const storagedData = localStorage.getItem(selectedRoomId);
+      const storagedData = localStorage.getItem(roomId);
       if (storagedData !== null) {
         const userData = JSON.parse(storagedData) as {
           userMap: UserMap;
@@ -94,7 +94,7 @@ export const useChatMessages = () => {
         userMap = { ...userMap, ...newUserMap };
         const data = { userMap, timestamp: Date.now() };
 
-        localStorage.setItem(selectedRoomId, JSON.stringify(data));
+        localStorage.setItem(roomId, JSON.stringify(data));
       }
 
       const messagesWithUserName = fetchedMessages.map((message) => {
@@ -106,12 +106,16 @@ export const useChatMessages = () => {
 
       return { messagesWithUserName, fetchedNextKey };
     },
-    [selectedRoomId, checkIsTimestampValid],
+    [checkIsTimestampValid],
   );
 
   const fetchMoreMessages = useCallback(async () => {
+    if (!selectedRoom) return;
     try {
-      const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames(nextKey);
+      const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames(
+        selectedRoom.id,
+        nextKey,
+      );
 
       const updatedMessages = [...messages, ...messagesWithUserName];
       setMessages(updatedMessages);
@@ -120,14 +124,24 @@ export const useChatMessages = () => {
     } catch (err) {
       handleError(err);
     }
-  }, [messages, nextKey, fetchMessagesAndUserNames, setMessages, handleError, resetError]);
+  }, [
+    messages,
+    nextKey,
+    selectedRoom,
+    fetchMessagesAndUserNames,
+    setMessages,
+    handleError,
+    resetError,
+  ]);
 
   useEffect(() => {
-    if (!selectedRoomId) return;
+    if (!selectedRoom) return;
 
     (async () => {
       try {
-        const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames();
+        const { messagesWithUserName, fetchedNextKey } = await fetchMessagesAndUserNames(
+          selectedRoom.id,
+        );
         setMessages(messagesWithUserName);
         setNextKey(fetchedNextKey);
         resetError();
@@ -137,7 +151,7 @@ export const useChatMessages = () => {
     })();
 
     socketRef.current = new WebSocket(
-      `ws://${process.env.NEXT_PUBLIC_API_HOST}/ws/${selectedRoomId}`,
+      `ws://${process.env.NEXT_PUBLIC_API_HOST}/ws/${selectedRoom.id}`,
     );
 
     socketRef.current.onopen = (event) => {
@@ -167,7 +181,7 @@ export const useChatMessages = () => {
       socketRef.current?.close();
     };
   }, [
-    selectedRoomId,
+    selectedRoom,
     fetchMessagesAndUserNames,
     setMessages,
     addMessage,

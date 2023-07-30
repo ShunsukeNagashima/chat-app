@@ -2,26 +2,22 @@ import { create } from 'zustand';
 
 import { Message } from '../domain/models/message';
 
-import { Room } from '@/infra/room/entity/room';
+import { Room } from '@/domain/models/room';
 
 export type ChatStore = {
   messages: Message[];
-  username: string;
-  selectedRoomId: string;
+  selectedRoom: Room | undefined;
   setMessages: (messages: Message[]) => void;
   addMessage: (message: Message) => void;
-  setUsername: (username: string) => void;
-  setSelectedRoomId: (roomId: string) => void;
+  setSelectedRoom: (room: Room) => void;
   clearMessages: () => void;
 };
 
 export const useChatStore = create<ChatStore>((set) => ({
   messages: [],
-  username: '',
-  selectedRoomId: '',
+  selectedRoom: undefined,
   setMessages: (messages) => set({ messages }),
   addMessage: (message) => set((state) => ({ messages: [message, ...state.messages] })),
-  setUsername: (username) => set({ username }),
   clearMessages: () => set({ messages: [] }),
-  setSelectedRoomId: (roomId) => set({ selectedRoomId: roomId }),
+  setSelectedRoom: (room) => set({ selectedRoom: room }),
 }));
