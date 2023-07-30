@@ -152,7 +152,6 @@ export const useChatRooms = () => {
   );
 
   const searchMoreUsers = useCallback(async () => {
-    console.log(previousSearchQuery);
     if (!previousSearchQuery) return;
     const req = {
       query: previousSearchQuery,
@@ -288,11 +287,13 @@ export const useChatRooms = () => {
     wsInstance.onmessage = async (event) => {
       const eventData = JSON.parse(event.data) as RoomUserEvent;
       if (eventData.type === EVENT_TYPES.ROOM_USER_CHANGE) {
+        if (eventData.data.userId !== authUser?.id) return;
+
         const rooms = await fetchRooms();
         rooms && setFetchedRooms(rooms);
       }
     };
-  }, [wsInstance, fetchRooms, handleError]);
+  }, [wsInstance, authUser?.id, fetchRooms, handleError]);
 
   return {
     rooms: fetchedRooms,
