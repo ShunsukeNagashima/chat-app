@@ -22,9 +22,9 @@ export const useChatMessages = () => {
   const socketRef = useRef<WebSocket>();
 
   const sendMessage = useCallback(
-    async (event: React.FormEvent<HTMLFormElement>) => {
+    async (event?: React.SyntheticEvent) => {
       if (!selectedRoom || !user) return;
-      event.preventDefault();
+      if (event) event.preventDefault();
       try {
         const message = await messageRepository.create({
           roomId: selectedRoom.id,
@@ -45,7 +45,7 @@ export const useChatMessages = () => {
     [user, messageContent, selectedRoom, handleError, resetError],
   );
 
-  const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessageContent(event.target.value);
   }, []);
 

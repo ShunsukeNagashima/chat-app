@@ -25,7 +25,14 @@ export const MessageItem: FC<MessageItemProps> = ({ message, className }) => {
             {message.createdAt.format('YYYY-MM-DD HH:mm:ss')}
           </span>
         </div>
-        <p className='mt-2 text-sm leading-normal'>{message.content}</p>
+        <p className='mt-2 text-sm leading-normal'>
+          {message.content.split('\n').map((line, i) => (
+            <span key={i}>
+              {line}
+              <br />
+            </span>
+          ))}
+        </p>
       </div>
     </div>
   );
