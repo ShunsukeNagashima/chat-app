@@ -3,6 +3,7 @@ import { FC } from 'react';
 import { AiFillPlusSquare, AiFillLock } from 'react-icons/ai';
 import { BiConversation } from 'react-icons/bi';
 import { RiArrowDropDownLine } from 'react-icons/ri';
+import { RxCross2 } from 'react-icons/rx';
 
 import { Room } from '@/domain/models/room';
 
@@ -10,10 +11,12 @@ type SidebarProps = {
   isOpen: boolean;
   chatRooms: Room[];
   selectedRoomId: string;
+  isSidebarOpen: boolean;
   handleLogout: () => Promise<void>;
   toggleDropdown: () => void;
   selectRoom: (room: Room) => void;
   openCreateRoomModal: () => void;
+  toggleSidebar: () => void;
 };
 
 export const Sidebar: FC<SidebarProps> = (props) => {
@@ -21,16 +24,28 @@ export const Sidebar: FC<SidebarProps> = (props) => {
     isOpen,
     chatRooms,
     selectedRoomId,
+    isSidebarOpen,
     handleLogout,
     toggleDropdown,
     selectRoom,
     openCreateRoomModal,
+    toggleSidebar,
   } = props;
   return (
-    <aside className='w-64 overflow-y-hidden border-r border-gray-700 p-4 text-white hover:overflow-y-auto'>
+    <aside
+      className={`
+      fixed inset-y-0 left-0 z-10
+      w-64
+      bg-gray-900 p-4 text-white transition-transform duration-300 md:static
+      ${isSidebarOpen ? 'translate-x-0' : '-translate-x-64'} md:translate-x-0
+    `}
+    >
       <div className='mb-8 flex items-center justify-between'>
-        <h1 className='text-xl font-bold'>Chat App</h1>
-        <button onClick={toggleDropdown} className='relative'>
+        <div className='flex items-center gap-x-4'>
+          {isSidebarOpen && <RxCross2 size={30} onClick={toggleSidebar} />}
+          <h1 className='text-xl font-bold'>Chat App</h1>
+        </div>
+        <div onClick={toggleDropdown} className='relative' role='button' tabIndex={0}>
           <RiArrowDropDownLine size={40} />
           {isOpen && (
             <ul className='absolute right-0 z-10 mt-2 w-48 rounded bg-gray-700 py-2 shadow-lg'>
@@ -41,7 +56,7 @@ export const Sidebar: FC<SidebarProps> = (props) => {
               </li>
             </ul>
           )}
-        </button>
+        </div>
       </div>
       <div className='px-2'>
         <div className='flex flex-col items-start gap-y-4 text-gray-400 '>

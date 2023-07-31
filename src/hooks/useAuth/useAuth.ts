@@ -22,6 +22,7 @@ export const useAuth = () => {
   const logout = useCallback(async () => {
     try {
       await signOut(auth);
+      localStorage.removeItem('user');
       if (wsInstance) disconnect();
     } catch (err) {
       console.error('Failed to logout', err);

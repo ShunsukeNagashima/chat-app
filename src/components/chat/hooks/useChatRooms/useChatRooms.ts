@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SubmitHandler, set, useForm } from 'react-hook-form';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';
@@ -35,6 +35,7 @@ export const useChatRooms = () => {
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [nextKey, setNextKey] = useState('');
   const [previousSearchQuery, setPreviousSearchQuery] = useState('');
+  const [isSidebarOpen, { toggle: toggleSidebar, off: closeSidebar }] = useBoolean(false);
   const [isOpenLeaveConfirmation, { on: openLeaveConfirmation, off: closeLeaveConfirmation }] =
     useBoolean(false);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
@@ -86,8 +87,9 @@ export const useChatRooms = () => {
       if (selectedRoom?.id === room.id) return;
       setSelectedRoom(room);
       clearMessages();
+      isSidebarOpen && closeSidebar();
     },
-    [selectedRoom, clearMessages, setSelectedRoom],
+    [selectedRoom, isSidebarOpen, clearMessages, setSelectedRoom, closeSidebar],
   );
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
@@ -152,7 +154,6 @@ export const useChatRooms = () => {
   );
 
   const searchMoreUsers = useCallback(async () => {
-    console.log(previousSearchQuery);
     if (!previousSearchQuery) return;
     const req = {
       query: previousSearchQuery,
@@ -288,11 +289,13 @@ export const useChatRooms = () => {
     wsInstance.onmessage = async (event) => {
       const eventData = JSON.parse(event.data) as RoomUserEvent;
       if (eventData.type === EVENT_TYPES.ROOM_USER_CHANGE) {
+        if (eventData.data.userId !== authUser?.id) return;
+
         const rooms = await fetchRooms();
         rooms && setFetchedRooms(rooms);
       }
     };
-  }, [wsInstance, fetchRooms, handleError]);
+  }, [wsInstance, authUser?.id, fetchRooms, handleError]);
 
   return {
     rooms: fetchedRooms,
@@ -305,6 +308,7 @@ export const useChatRooms = () => {
     createdRoom,
     nextKey,
     isOpenLeaveConfirmation,
+    isSidebarOpen,
     createRoom,
     selectRoom,
     register,
@@ -321,5 +325,6 @@ export const useChatRooms = () => {
     openLeaveConfirmation,
     closeLeaveConfirmation,
     leaveFromRoom,
+    toggleSidebar,
   };
 };

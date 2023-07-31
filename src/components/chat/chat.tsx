@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import { BsPersonPlusFill } from 'react-icons/bs';
+import { GiHamburgerMenu } from 'react-icons/gi';
 import { ImExit } from 'react-icons/im';
 
 import {
@@ -37,6 +38,7 @@ export const Chat: FC = () => {
     createdRoom,
     nextKey: nextKeyForUsers,
     isOpenLeaveConfirmation,
+    isSidebarOpen,
     createRoom,
     selectRoom,
     handleNextStep,
@@ -53,6 +55,7 @@ export const Chat: FC = () => {
     openLeaveConfirmation,
     closeLeaveConfirmation,
     leaveFromRoom,
+    toggleSidebar,
   } = useChatRooms();
   const {
     messageContent,
@@ -67,33 +70,37 @@ export const Chat: FC = () => {
       <Sidebar
         isOpen={isOpenDropdown}
         selectedRoomId={selectedRoom?.id ?? ''}
+        isSidebarOpen={isSidebarOpen}
         handleLogout={logout}
         toggleDropdown={toggleDropdown}
         selectRoom={selectRoom}
         chatRooms={rooms}
         openCreateRoomModal={handleNextStep}
+        toggleSidebar={toggleSidebar}
       />
       <main className='flex h-screen flex-1 flex-col justify-between text-white'>
-        {selectedRoom && (
-          <div className='flex h-[60px] items-center justify-between border-b border-gray-700 px-4 text-xl font-bold'>
-            {selectedRoom.name}
-            <div className='flex gap-x-6'>
-              <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
-                <BsPersonPlusFill size={20} onClick={handleOpenAddUsers} />
-                <span className='absolute left-1/2 top-full mt-2 min-w-[90px] -translate-x-1/2 rounded bg-gray-700 px-2 py-1 text-center text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                  Add Users
-                </span>
-              </div>
-              <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
-                <ImExit size={20} onClick={openLeaveConfirmation} />
-                <span className='absolute right-0 top-full mt-2 w-auto min-w-[100px] rounded bg-gray-700 px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
-                  Leave Room
-                </span>
+        <div className='flex h-[60px] items-center justify-between border-b border-gray-700 px-4 text-xl font-bold'>
+          <GiHamburgerMenu className='md:hidden' onClick={toggleSidebar} />
+          <span>{selectedRoom?.name}</span>
+          {selectedRoom && (
+            <div className='flex items-center justify-between'>
+              <div className='flex gap-x-6'>
+                <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
+                  <BsPersonPlusFill size={20} onClick={handleOpenAddUsers} />
+                  <span className='absolute left-1/2 top-full mt-2 min-w-[90px] -translate-x-1/2 rounded bg-gray-700 px-2 py-1 text-center text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                    Add Users
+                  </span>
+                </div>
+                <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
+                  <ImExit size={20} onClick={openLeaveConfirmation} />
+                  <span className='absolute right-0 top-full mt-2 w-auto min-w-[100px] rounded bg-gray-700 px-2 py-1 text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
+                    Leave Room
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-
+          )}
+        </div>
         <MessageList
           messages={messages}
           selectedRoomId={selectedRoom?.id ?? ''}

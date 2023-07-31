@@ -8,7 +8,7 @@ type ButtonProps = ComponentProps<'button'> & {
   size?: ButtonSize;
   startIcon?: ReactNode;
   loading?: boolean;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
 export const Button: FC<ButtonProps> = (props) => {
@@ -28,7 +28,7 @@ export const Button: FC<ButtonProps> = (props) => {
   return (
     <button
       {...buttonProps}
-      className={`flex w-auto min-w-[100px] items-center justify-center rounded-md border border-transparent font-medium text-white shadow-sm sm:mt-0 sm:text-sm ${className.button} `}
+      className={`flex w-auto items-center justify-center rounded-md border border-transparent font-medium text-white shadow-sm sm:mt-0 sm:text-sm ${className.button} `}
       disabled={disabled}
       aria-disabled={disabled}
     >
