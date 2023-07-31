@@ -20,7 +20,7 @@ export const Modal: FC<ModalProps> = (props) => {
           className='fixed inset-0 bg-gray-500/75 transition-opacity'
         />
 
-        <div className='translate-y-[-50%] overflow-hidden rounded-lg bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:w-full sm:max-w-lg sm:p-6'>
+        <div className='w-11/12 max-w-lg translate-y-0 overflow-hidden rounded-lg bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:max-w-lg sm:translate-y-[-50%] sm:p-6'>
           <div className='mb-6 flex items-center justify-between'>
             <h2 className='font-bold'>{title}</h2>
             {!loading && (

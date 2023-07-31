@@ -35,6 +35,7 @@ export const useChatRooms = () => {
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [nextKey, setNextKey] = useState('');
   const [previousSearchQuery, setPreviousSearchQuery] = useState('');
+  const [isSidebarOpen, { toggle: toggleSidebar, off: closeSidebar }] = useBoolean(false);
   const [isOpenLeaveConfirmation, { on: openLeaveConfirmation, off: closeLeaveConfirmation }] =
     useBoolean(false);
   const [loading, { on: startLoading, off: finishLoading }] = useBoolean(false);
@@ -86,8 +87,9 @@ export const useChatRooms = () => {
       if (selectedRoom?.id === room.id) return;
       setSelectedRoom(room);
       clearMessages();
+      isSidebarOpen && closeSidebar();
     },
-    [selectedRoom, clearMessages, setSelectedRoom],
+    [selectedRoom, isSidebarOpen, clearMessages, setSelectedRoom, closeSidebar],
   );
 
   const createRoom: SubmitHandler<ChatRoomFormInput> = useCallback(
@@ -306,6 +308,7 @@ export const useChatRooms = () => {
     createdRoom,
     nextKey,
     isOpenLeaveConfirmation,
+    isSidebarOpen,
     createRoom,
     selectRoom,
     register,
@@ -322,5 +325,6 @@ export const useChatRooms = () => {
     openLeaveConfirmation,
     closeLeaveConfirmation,
     leaveFromRoom,
+    toggleSidebar,
   };
 };
