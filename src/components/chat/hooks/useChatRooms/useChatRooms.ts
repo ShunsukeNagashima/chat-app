@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SubmitHandler, set, useForm } from 'react-hook-form';
+import { SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import { ChatRoomFormInput } from '@/components/chat/type';

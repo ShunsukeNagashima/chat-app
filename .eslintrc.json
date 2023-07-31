@@ -1,8 +1,9 @@
 {
   "extends": ["next/core-web-vitals", "prettier", "plugin:tailwindcss/recommended"],
-  "plugins": ["import"],
+  "plugins": ["import", "unused-imports"],
   "rules": {
     "object-curly-spacing": ["error", "always"],
+    "unused-imports/no-unused-imports": "error",
     "import/order": [
       "error",
       {
