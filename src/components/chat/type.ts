@@ -1,4 +1,4 @@
-import { RoomTypeEnum } from '@/infra/room/entity/room';
+import { RoomTypeEnum } from '@/lib/enum/room-type';
 
 export type ChatRoomFormInput = {
   name: string;

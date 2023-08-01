@@ -1,6 +1,4 @@
 import { renderHook, act } from '@testing-library/react';
-import ky from 'ky';
-import { HTTPError } from 'ky';
 
 import { useErrorHandler } from './useErrorHandler';
 

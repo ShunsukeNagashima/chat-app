@@ -9,6 +9,7 @@
     "lint": "eslint ./src --fix",
     "format": "prettier --write --ignore-path .gitignore './**/*.{js,jsx,ts,tsx,json}'",
     "test": "jest --watch",
+    "type-check": "tsc --noEmit",
     "prepare": "husky install"
   },
   "dependencies": {
