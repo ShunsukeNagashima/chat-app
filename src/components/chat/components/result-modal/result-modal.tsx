@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC } from 'react';
 
 import { Button } from '@/components/ui/button/button';
 import { Modal } from '@/components/ui/modal';

@@ -1,5 +1,3 @@
-import { Room } from '@/infra/room/entity/room';
-
 export type User = {
   userId: string;
   userName: string;
