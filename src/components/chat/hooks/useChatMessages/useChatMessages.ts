@@ -170,6 +170,7 @@ export const useChatMessages = () => {
         roomId: eventData.data.roomId,
         userId: eventData.data.userId,
         userName: user.name,
+        userImageUrl: user.profileImageUrl,
         content: eventData.data.content,
         createdAt: dayjs(eventData.data.createdAt),
       });
