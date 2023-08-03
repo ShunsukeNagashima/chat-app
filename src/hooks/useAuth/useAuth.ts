@@ -51,7 +51,7 @@ export const useAuth = () => {
           setUser(user);
         }
         if (!wsInstance || wsInstance.readyState !== WebSocket.OPEN) {
-          connect(`ws://${process.env.NEXT_PUBLIC_API_HOST}/ws`);
+          connect(`${process.env.NEXT_PUBLIC_WEBSOCKET_API_ENDPOINT}/ws`);
         }
       }
     });
