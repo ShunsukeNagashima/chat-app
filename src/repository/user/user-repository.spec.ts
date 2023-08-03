@@ -12,7 +12,6 @@ describe('UserRepository', () => {
     fetchById: jest.fn(),
     create: jest.fn(),
     batchGet: jest.fn(),
-    searchUsers: jest.fn(),
   });
 
   it('should fetch user correctly', async () => {
@@ -94,34 +93,5 @@ describe('UserRepository', () => {
     expect(users[1].id).toEqual('test-user-id-2');
     expect(users[1].name).toEqual('test-user-name-2');
     expect(users[1].email).toEqual('user-2@test.com');
-  });
-
-  it('should search users correctly', async () => {
-    const mockUsers = [];
-    for (let i = 0; i < 3; i++) {
-      mockUsers.push({
-        userId: `test-user-id-${i}`,
-        userName: `${i}-test-user-name`,
-        email: `user-${i}@test.com`,
-      });
-    }
-
-    const client = proxy(mockClient, {
-      searchUsers: jest.fn().mockResolvedValue({ users: [mockUsers[0]], nextKey: '' }),
-    });
-
-    const userRepository = new UserRepositoryImpl(client);
-
-    const { users, nextKey } = await userRepository.search({
-      query: '0',
-      nextKey: '',
-      size: 20,
-    });
-
-    expect(users.length).toEqual(1);
-    expect(users[0].id).toEqual('test-user-id-0');
-    expect(users[0].name).toEqual('0-test-user-name');
-    expect(users[0].email).toEqual('user-0@test.com');
-    expect(nextKey).toEqual('');
   });
 });

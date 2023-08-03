@@ -11,17 +11,15 @@ export type FetchByIdPayload = {
   userId: string;
 };
 
-export type SearchUsersPayload = {
-  query: string;
+export type FetchMultipleUsersPayload = {
   nextKey: string;
-  size: number;
 };
 
 export type BatchGetUsersPayload = {
   userIds: string[];
 };
 
-export type SearchUsersResponse = {
+export type FetchMultipleUsersResponse = {
   users: User[];
   nextKey: string;
 };

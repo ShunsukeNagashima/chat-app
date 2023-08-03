@@ -3,9 +3,9 @@ import dayjs from 'dayjs';
 import {
   CreateUserPayload,
   FetchByIdPayload,
-  SearchUsersPayload,
+  FetchMultipleUsersPayload,
   BatchGetUsersPayload,
-  SearchUsersResponse,
+  FetchMultipleUsersResponse,
 } from './types';
 
 import { UserClass, User } from '@/domain/models/user';
@@ -14,7 +14,7 @@ import { userClient, UserClient } from '@/infra/user/user-client';
 interface UserRepository {
   create(payload: CreateUserPayload): Promise<User>;
   fetchById(payload: FetchByIdPayload): Promise<User>;
-  search(payload: SearchUsersPayload): Promise<SearchUsersResponse>;
+  fetchMultipleUsers(payload: FetchMultipleUsersPayload): Promise<FetchMultipleUsersResponse>;
   batchGet(payload: BatchGetUsersPayload): Promise<User[]>;
 }
 
@@ -34,7 +34,9 @@ export class UserRepositoryImpl implements UserRepository {
   }
 
   async fetchById(payload: FetchByIdPayload): Promise<User> {
-    const user = await this.userClient.fetchById(payload);
+    const { userId } = payload;
+
+    const user = await this.userClient.fetchById(userId);
     return UserClass.create({
       id: user.userId,
       name: user.userName,
@@ -44,10 +46,14 @@ export class UserRepositoryImpl implements UserRepository {
     });
   }
 
-  async search(payload: SearchUsersPayload): Promise<SearchUsersResponse> {
-    const { users: usersFromClient, nextKey } = await this.userClient.searchUsers(payload);
+  async fetchMultipleUsers(
+    payload: FetchMultipleUsersPayload,
+  ): Promise<FetchMultipleUsersResponse> {
+    const { nextKey } = payload;
 
-    const users = usersFromClient.map((user) => {
+    const res = await this.userClient.fetchMultipleUsers(nextKey);
+
+    const users = res.users.map((user) => {
       return UserClass.create({
         id: user.userId,
         name: user.userName,
@@ -57,7 +63,7 @@ export class UserRepositoryImpl implements UserRepository {
       });
     });
 
-    return { users, nextKey };
+    return { users: users, nextKey: res.nextKey };
   }
 
   async batchGet(payload: BatchGetUsersPayload): Promise<User[]> {

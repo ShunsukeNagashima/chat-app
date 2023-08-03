@@ -4,12 +4,10 @@ import {
   User,
   CreateUserRequest,
   CreateUserResponse,
-  FetchByIdRequest,
   FetchByIdResponse,
-  SearchUsersRequest,
-  SearchUsersResponse,
   BatchGetUsersRequest,
   BatchGetUsersReponse,
+  FetchMultipleUsersResponse,
 } from './entity/user';
 
 import { kyInstance } from '@/lib/ky';
@@ -22,21 +20,17 @@ export class UserClient {
     return response.result;
   }
 
-  async fetchById(req: FetchByIdRequest): Promise<User> {
-    const { userId } = req;
-
+  async fetchById(userId: string): Promise<User> {
     const reponse = await this.ky.get(`api/users/${userId}`).json<FetchByIdResponse>();
     return reponse.result;
   }
 
-  async searchUsers(req: SearchUsersRequest): Promise<{ users: User[]; nextKey: string }> {
+  async fetchMultipleUsers(nextKey: string): Promise<{ users: User[]; nextKey: string }> {
     const response = await this.ky
-      .get('api/users/search', { searchParams: req })
-      .json<SearchUsersResponse>();
-    return {
-      users: response.result,
-      nextKey: response.nextKey,
-    };
+      .get(`api/users?lastEvaluatedKey=${nextKey}`)
+      .json<FetchMultipleUsersResponse>();
+
+    return { users: response.result, nextKey: response.nextKey };
   }
 
   async batchGet(req: BatchGetUsersRequest): Promise<User[]> {

@@ -151,7 +151,7 @@ export const useChatMessages = () => {
     })();
 
     socketRef.current = new WebSocket(
-      `ws://${process.env.NEXT_PUBLIC_API_HOST}/ws/${selectedRoom.id}`,
+      `${process.env.NEXT_PUBLIC_WEBSOCKET_API_ENDPOINT}/ws/${selectedRoom.id}`,
     );
 
     socketRef.current.onopen = (event) => {
