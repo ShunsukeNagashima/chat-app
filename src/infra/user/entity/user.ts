@@ -17,21 +17,11 @@ export type CreateUserResponse = {
   result: User;
 };
 
-export type FetchByIdRequest = {
-  userId: string;
-};
-
 export type FetchByIdResponse = {
   result: User;
 };
 
-export type SearchUsersRequest = {
-  query: string;
-  nextKey: string;
-  size: number;
-};
-
-export type SearchUsersResponse = {
+export type FetchMultipleUsersResponse = {
   result: User[];
   nextKey: string;
 };
