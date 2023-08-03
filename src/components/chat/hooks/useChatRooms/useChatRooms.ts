@@ -29,12 +29,11 @@ const schema = z.object({
 
 export const useChatRooms = () => {
   const [currentStep, setCurrentStep] = useState<RoomCreationStepsEnum>(ROOM_CREATION_STEPS.CLOSED);
-  const [searchedUsers, setSearchedUsers] = useState<User[]>([]);
+  const [fetchedUsers, setFetchedUsers] = useState<User[]>([]);
   const [usersToBeAdded, setUsersToBeAdded] = useState<User[]>([]);
   const [createdRoom, setCreatedRoom] = useState<Room>();
   const [fetchedRooms, setFetchedRooms] = useState<Room[]>([]);
   const [nextKey, setNextKey] = useState('');
-  const [previousSearchQuery, setPreviousSearchQuery] = useState('');
   const [isSidebarOpen, { toggle: toggleSidebar, off: closeSidebar }] = useBoolean(false);
   const [isOpenLeaveConfirmation, { on: openLeaveConfirmation, off: closeLeaveConfirmation }] =
     useBoolean(false);
@@ -48,7 +47,29 @@ export const useChatRooms = () => {
     mode: 'onChange',
   });
 
-  const handleNextStep = useCallback(() => {
+  const fetchUsers = useCallback(
+    async (nextKey?: string) => {
+      if (!authUser) return;
+      try {
+        const { users, nextKey: fetchedNextKey } = await userRepository.fetchMultipleUsers({
+          nextKey: nextKey ?? '',
+        });
+        const usersWithoutOwner = users.filter((user) => user.id !== authUser.id);
+        resetError();
+        setFetchedUsers((prevUsers) => [...prevUsers, ...usersWithoutOwner]);
+        setNextKey(fetchedNextKey);
+      } catch (err) {
+        handleError(err);
+      }
+    },
+    [authUser, handleError, resetError],
+  );
+
+  const handleNextStep = useCallback(async () => {
+    if (currentStep + 1 === ROOM_CREATION_STEPS.ADD_USERS) {
+      await fetchUsers();
+    }
+
     setCurrentStep((prevStep) => {
       if (prevStep >= ROOM_CREATION_STEPS.ADD_USERS_RESULT) {
         return ROOM_CREATION_STEPS.CLOSED;
@@ -56,9 +77,13 @@ export const useChatRooms = () => {
         return (prevStep + 1) as RoomCreationStepsEnum;
       }
     });
-  }, []);
+  }, [currentStep, fetchUsers]);
 
-  const handlePrevStep = useCallback(() => {
+  const handlePrevStep = useCallback(async () => {
+    if (currentStep - 1 === ROOM_CREATION_STEPS.ADD_USERS) {
+      await fetchUsers();
+    }
+
     setCurrentStep((prevStep) => {
       if (prevStep <= ROOM_CREATION_STEPS.CREATE_ROOM) {
         return ROOM_CREATION_STEPS.CLOSED;
@@ -66,7 +91,7 @@ export const useChatRooms = () => {
         return (prevStep - 1) as RoomCreationStepsEnum;
       }
     });
-  }, []);
+  }, [currentStep, fetchUsers]);
 
   const handleOpenAddUsers = useCallback(() => {
     setCurrentStep(ROOM_CREATION_STEPS.ADD_USERS);
@@ -76,11 +101,9 @@ export const useChatRooms = () => {
     setCurrentStep(ROOM_CREATION_STEPS.CLOSED);
     resetError();
     setUsersToBeAdded([]);
-    setSearchedUsers([]);
-    setNextKey('');
-    setPreviousSearchQuery('');
     setCreatedRoom(undefined);
-  }, [resetError, setUsersToBeAdded, setSearchedUsers]);
+    setNextKey('');
+  }, [resetError, setUsersToBeAdded]);
 
   const selectRoom = useCallback(
     (room: Room) => {
@@ -127,61 +150,6 @@ export const useChatRooms = () => {
       reset,
     ],
   );
-
-  const searchUsers = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const query = event.target.value;
-      const req = {
-        query,
-        nextKey: '',
-        size: 20,
-      };
-      startLoading();
-      try {
-        const { users, nextKey: fetchedNextKey } = await userRepository.search(req);
-        const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
-        setSearchedUsers(usersWithoutOwner);
-        setNextKey(fetchedNextKey);
-        setPreviousSearchQuery(query);
-        resetError();
-      } catch (err) {
-        handleError(err);
-      } finally {
-        finishLoading();
-      }
-    },
-    [authUser, startLoading, finishLoading, handleError, resetError],
-  );
-
-  const searchMoreUsers = useCallback(async () => {
-    if (!previousSearchQuery) return;
-    const req = {
-      query: previousSearchQuery,
-      nextKey,
-      size: 20,
-    };
-    startLoading();
-    try {
-      const { users, nextKey: fetchedNextKey } = await userRepository.search(req);
-      const usersWithoutOwner = users.filter((user) => user.id !== authUser?.id);
-      setSearchedUsers((prevUsers) => [...prevUsers, ...usersWithoutOwner]);
-      setNextKey(fetchedNextKey);
-      resetError();
-    } catch (err) {
-      handleError(err);
-    } finally {
-      finishLoading();
-    }
-  }, [
-    authUser,
-    nextKey,
-    previousSearchQuery,
-    startLoading,
-    finishLoading,
-    handleError,
-    resetError,
-  ]);
-
   const addUserToList = useCallback(
     (user: User) => {
       const updatedUsers = [...usersToBeAdded, user];
@@ -221,7 +189,7 @@ export const useChatRooms = () => {
         handleNextStep();
         resetError();
         setUsersToBeAdded([]);
-        setSearchedUsers([]);
+        setFetchedUsers([]);
       } catch (err) {
         handleError(err);
       } finally {
@@ -303,7 +271,7 @@ export const useChatRooms = () => {
     currentStep,
     isActionFailed: !!error,
     loading,
-    searchedUsers,
+    fetchedUsers,
     usersToBeAdded,
     createdRoom,
     nextKey,
@@ -316,8 +284,7 @@ export const useChatRooms = () => {
     handleNextStep,
     handlePrevStep,
     handleClose,
-    searchUsers,
-    searchMoreUsers,
+    fetchUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,

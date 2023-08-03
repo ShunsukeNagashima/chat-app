@@ -33,7 +33,7 @@ export const Chat: FC = () => {
     currentStep,
     isActionFailed,
     loading,
-    searchedUsers,
+    fetchedUsers,
     usersToBeAdded,
     createdRoom,
     nextKey: nextKeyForUsers,
@@ -46,8 +46,7 @@ export const Chat: FC = () => {
     handleClose,
     register,
     handleSubmit,
-    searchUsers,
-    searchMoreUsers,
+    fetchUsers,
     addUserToList,
     removeUserFromList,
     addUsersToRoom,
@@ -86,7 +85,13 @@ export const Chat: FC = () => {
             <div className='flex items-center justify-between'>
               <div className='flex gap-x-6'>
                 <div className='group relative flex h-8 w-8 items-center justify-center rounded p-2 hover:bg-gray-500/20'>
-                  <BsPersonPlusFill size={20} onClick={handleOpenAddUsers} />
+                  <BsPersonPlusFill
+                    size={20}
+                    onClick={async () => {
+                      await fetchUsers('');
+                      handleOpenAddUsers();
+                    }}
+                  />
                   <span className='absolute left-1/2 top-full mt-2 min-w-[90px] -translate-x-1/2 rounded bg-gray-700 px-2 py-1 text-center text-sm text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100'>
                     Add Users
                   </span>
@@ -138,12 +143,11 @@ export const Chat: FC = () => {
 
       <StepContent step={ROOM_CREATION_STEPS.ADD_USERS} currentStep={currentStep}>
         <AddUsersModal
-          users={searchedUsers}
+          users={fetchedUsers}
           usersToBeAdded={usersToBeAdded}
           nextKey={nextKeyForUsers}
           handleClose={handleClose}
-          searchUsers={searchUsers}
-          searchMoreUsers={searchMoreUsers}
+          fetchUsers={fetchUsers}
           addUserToList={addUserToList}
           removeUserFromList={removeUserFromList}
           handleNextStep={handleNextStep}

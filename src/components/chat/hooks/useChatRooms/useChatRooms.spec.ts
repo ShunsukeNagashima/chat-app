@@ -11,7 +11,6 @@ import {
   CreateRoomPayload,
   AddUsersPayload,
 } from '@/repository/room/type';
-import { SearchUsersPayload } from '@/repository/user/types';
 import { useAuthStore } from '@/store/auth-store';
 import { useWebSocketStore } from '@/store/websocket-store';
 
@@ -22,6 +21,7 @@ const mocks = {
   search: jest.fn(),
   addUsers: jest.fn(),
   send: jest.fn(),
+  fetchMultipleUsers: jest.fn(),
 };
 
 jest.mock('@/repository/room/room-repository', () => ({
@@ -33,8 +33,9 @@ jest.mock('@/repository/room/room-repository', () => ({
 }));
 
 jest.mock('@/repository/user/user-repository', () => ({
+  ...jest.requireActual('@/repository/user/user-repository'),
   userRepository: {
-    search: (payload: SearchUsersPayload) => mocks.search(payload),
+    fetchMultipleUsers: () => mocks.fetchMultipleUsers(),
   },
 }));
 
@@ -84,17 +85,17 @@ type Result = {
 
 describe('useChatRooms', () => {
   let result: Result;
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
-    mockUseAuthStore.mockImplementation(() => ({
-      user: { id: 'testUid' },
-    }));
-    mockUseWebSocketStore.mockImplementation(() => ({
-      wsInstance: {
-        send: mocks.send,
-      },
-    }));
   });
+  mockUseAuthStore.mockImplementation(() => ({
+    user: { id: 'testUid' },
+  }));
+  mockUseWebSocketStore.mockImplementation(() => ({
+    wsInstance: {
+      send: mocks.send,
+    },
+  }));
   describe('fetch rooms', () => {
     it('should fetch rooms', async () => {
       const mockRooms = [
@@ -163,7 +164,7 @@ describe('useChatRooms', () => {
         result = renderHook(() => useChatRooms()).result;
       });
 
-      act(() => {
+      await act(async () => {
         result.current.handleNextStep();
       });
 
@@ -217,35 +218,6 @@ describe('useChatRooms', () => {
       });
 
       expect(mocks.setSelectedRoom).toHaveBeenCalledWith(mockRoom);
-    });
-  });
-
-  describe('search users', () => {
-    it('should search users', async () => {
-      const mockUsers = [
-        {
-          id: 'testUserId',
-          name: 'testUser',
-          email: 'test@test.com',
-          createdAt: dayjs('2023-01-01'),
-          profileImageUrl: 'test-url',
-        },
-      ];
-
-      mocks.search.mockResolvedValue({ users: mockUsers, nextKey: '' });
-
-      await act(async () => {
-        result = renderHook(() => useChatRooms()).result;
-      });
-
-      const event = { target: { value: 'test' } } as any;
-
-      await act(async () => {
-        await result.current.searchUsers(event);
-      });
-
-      expect(mocks.search).toHaveBeenCalledWith({ nextKey: '', query: 'test', size: 20 });
-      expect(result.current.searchedUsers).toEqual(mockUsers);
     });
   });
 
